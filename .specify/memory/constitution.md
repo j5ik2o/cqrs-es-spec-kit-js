@@ -1,50 +1,75 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: N/A → 1.0.0
+Modified principles:
+- PRINCIPLE_1_NAME → ドメイン中心アーキテクチャ
+- PRINCIPLE_2_NAME → 仕様駆動の意思決定
+- PRINCIPLE_3_NAME → ユースケース単位のモジュール性
+- PRINCIPLE_4_NAME → テストファースト検証
+- PRINCIPLE_5_NAME → ドキュメント同期と追跡性
+Added sections:
+- 追加技術制約
+- 開発ワークフロー
+Removed sections:
+- なし
+Templates requiring updates:
+- ✅ .specify/templates/plan-template.md
+- ✅ .specify/templates/spec-template.md
+- ✅ .specify/templates/tasks-template.md
+Follow-up TODOs:
+- なし
+-->
+# DDD Base with Spec JS 憲章
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### ドメイン中心アーキテクチャ
+- MUST ドメイン層はエンティティ・値オブジェクト・ドメインサービスで構成し、ビジネスルールを必ずこの層に集約する。
+- MUST ユースケース層はドメイン層の公開インターフェイスだけに依存し、インフラ詳細や UI からの依存を侵入させない。
+- MUST インターフェイスアダプタ層はユースケース層経由でのみドメイン機能を呼び出し、依存方向を内向きに限定する。
+理由: 層ごとの責務境界を厳格に保つことで変更時もビジネスロジックの安全性と再利用性を維持する。
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### 仕様駆動の意思決定
+- MUST 新規または変更作業は `/specs/` 配下の仕様書（spec-template.md 由来）を作成し、合意してから着手する。
+- MUST 仕様書にはユースケース、受入条件、ドメインへの影響、制約を明記し、変更が発生した場合は必ず更新する。
+- MUST 憲章違反が疑われる要求は仕様段階で解決するまで実装を進めない。
+理由: 仕様を先に合意することで DDD モデルと利害関係者の期待を同期させ、後戻りを防ぐ。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### ユースケース単位のモジュール性
+- MUST 各ユースケースは専用のアプリケーションサービスで実装し、他ユースケースへ直接依存しない。
+- MUST ドメインオブジェクトの生成・状態変更はユースケース層を経由させ、副作用を追跡できるようにする。
+- MUST ユースケースごとに計測可能な完了条件とテストを定義し、独立デプロイ可能な単位として扱う。
+理由: ユースケース境界を守ることで変更の影響範囲を局所化し、MVP 検証を迅速に進められる。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### テストファースト検証
+- MUST ドメイン層・ユースケース層の自動テスト（単体・契約・統合）を実装前に記述し、失敗を確認してからコードを書く。
+- MUST ドメイン不変条件とエラーシナリオは自動テストで網羅し、レビューで検証結果を確認する。
+- MUST テストは spec-template の受入条件とトレースできるようにし、破壊的変更時は同時に更新する。
+理由: テスト駆動で境界を具現化し、仕様逸脱を早期に検出する。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### ドキュメント同期と追跡性
+- MUST plan-template.md・tasks-template.md・spec-template.md に基づく成果物を最新状態に保ち、実装との乖離を禁止する。
+- MUST コミットや PR には該当する仕様・ユースケース ID を明記し、履歴から判断できるようにする。
+- MUST 構成やインフラの変更は quickstart や運用手順へ同時に反映し、利用者のオンボーディングを阻害しない。
+理由: ドキュメントとコードを同期させることでドメイン知識の属人化と再作業を抑制する。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## 追加技術制約
+- MUST リポジトリの基本構成を `src/domain`・`src/application`・`src/interfaces` の三層で定義し、ドメイン層は外部ライブラリへ直接依存しない。
+- MUST インフラアクセスはユースケース層が定義するポートを介して実装し、アダプタはドメイン型を変換せずに受け渡す。
+- MUST 技術選定やバージョンアップを行う場合は仕様書に「技術制約」節を追加し、互換性検証手順を記録する。
+- SHOULD Node.js ランタイムの LTS バージョンで運用し、変更時は互換性テストを実施する。
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## 開発ワークフロー
+1. 仕様策定: spec-template.md を用いてユーザーストーリー・受入基準・ドメイン影響を定義し、承認を得る。
+2. 研究・設計: plan-template.md を基に技術調査とドメインモデルの整理を行い、ユースケース単位のアプローチを固める。
+3. タスク分解: tasks-template.md でユースケース単位のタスクとテストタスクを列挙し、並列実行可否を明記する。
+4. 実装・検証: テストファーストで実装し、各ユースケースが単独で動作・デプロイできることを確認する。
+5. レビュー・同期: PR レビューで憲章原則に基づくチェックを行い、必要なドキュメントを更新してからマージする。
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- この憲章は DDD Base with Spec JS の開発・運用プロセスに対して最優先で適用され、矛盾するガイドラインを上書きする。
+- 改訂は Pull Request で提案し、影響を受けるテンプレート・ドキュメントの更新計画と検証結果を添付した場合にのみ承認される。
+- バージョンはセマンティックバージョニングを採用する（破壊的変更は MAJOR、原則追加や大幅拡張は MINOR、文言整理は PATCH）。
+- 憲章遵守レビューは各主要リリース前と四半期ごとに実施し、違反が判明した場合は是正計画と期日を記録する。
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-10-31 | **Last Amended**: 2025-10-31

@@ -1,104 +1,78 @@
-# Implementation Plan: [FEATURE]
+# 実装計画: [FEATURE]
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**ブランチ**: `[###-feature-name]` | **日付**: [DATE] | **仕様**: [link]  
+**入力**: `/specs/[###-feature-name]/spec.md` のフィーチャ仕様
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**メモ**: `/speckit.plan` コマンドが本テンプレートを出力する。運用手順はリポジトリのドキュメントで最新状態を確認する。
 
-## Summary
+## サマリー
 
-[Extract from feature spec: primary requirement + technical approach from research]
+[仕様からの抜粋: 主要求と調査で決定した技術アプローチを要約する]
 
-## Technical Context
+## 技術コンテキスト
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**使用言語 / バージョン**: Node.js LTS + TypeScript/JavaScript（不明な場合は要確認と記載）  
+**主要依存関係**: 例) Express, NestJS, Prisma（未確定なら要確認）  
+**ストレージ**: 例) PostgreSQL, DynamoDB, ファイル, N/A  
+**テスト基盤**: 例) Jest, Vitest, Playwright（不足時は要確認）  
+**対象プラットフォーム**: 例) Linux サーバー, AWS Lambda など  
+**プロジェクト種別**: 単一リポジトリ / Web / モノレポなど  
+**性能目標**: ドメインに依存。例) p95 < 200ms, 100rq/s  
+**制約**: ドメイン / 法規制 / インフラ制約を列挙  
+**規模・スコープ**: 想定ユーザー数やユースケース範囲
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+## 憲章準拠チェック
 
-## Constitution Check
+*ゲート条件: フェーズ0（リサーチ）着手前とフェーズ1（設計）完了時に必ず確認する。*
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+- ドメイン中心アーキテクチャ: 依存方向が `interfaces → application → domain` のみになっているか。
+- 仕様駆動の意思決定: `/specs/` の仕様に受入基準・制約・ドメイン影響が記載されているか。
+- ユースケース単位のモジュール性: 対象ユースケースが独立実装・独立デプロイ可能な粒度か。
+- テストファースト検証: 必要なテスト種別（単体・契約・統合）が洗い出され、タスク化されているか。
+- ドキュメント同期と追跡性: 本計画と仕様・タスク間のリンクが存在し、更新フローが明示されているか。
 
-[Gates determined based on constitution file]
+## プロジェクト構成
 
-## Project Structure
-
-### Documentation (this feature)
+### ドキュメント（このフィーチャ）
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+├── plan.md              # 本テンプレート（/speckit.plan 出力）
+├── research.md          # フェーズ0成果物（/speckit.plan 出力）
+├── data-model.md        # フェーズ1成果物（/speckit.plan 出力）
+├── quickstart.md        # フェーズ1成果物（/speckit.plan 出力）
+├── contracts/           # フェーズ1成果物（/speckit.plan 出力）
+└── tasks.md             # フェーズ2成果物（/speckit.tasks 出力。/speckit.plan では生成しない）
 ```
 
-### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
+### ソースコード（リポジトリルート）
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── domain/
+│   ├── entities/
+│   ├── value-objects/
+│   └── services/
+├── application/
+│   ├── use-cases/
+│   └── ports/
+└── interfaces/
+    ├── http/
+    ├── cli/
+    └── persistence/
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── unit/         # ドメイン・ユースケース単体
+├── contract/     # ポート・アダプタ契約
+└── integration/  # ユースケース横断
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**構成方針**: [このフィーチャで利用する実際のディレクトリ構成と差分を説明する]
 
-## Complexity Tracking
+## 複雑性トラッキング
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
+> **憲章準拠チェックで違反がある場合のみ記入する。**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| 違反内容 | 必要な理由 | 却下した単純代替案と理由 |
+|----------|------------|----------------------------|
+| [例: 追加レイヤー導入] | [必要性] | [採用しなかった代替案] |
