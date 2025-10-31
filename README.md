@@ -8,6 +8,8 @@
 - DDD/CQRS/ES 向けのベストプラクティス：アグリゲート、コマンド、イベント、リードモデルの設計指針を整理。
 - TypeScript/Node.js ベース：厳格な型安全性とモジュール構成を前提にしたテンプレート。
 - 拡張用リファレンス：`references/` ディレクトリで各種サンプルリポジトリを参照可能。
+- AWS 運用と LocalStack 検証：本番・ステージングは AWS を前提とし、ローカル検証は docker compose + LocalStack で AWS サービスを再現するガイドラインを提供。
+- GraphQL × Next.js アーキテクチャ：GraphQL サーバにドメインロジックを集約し、Next.js API Routes を BFF、Next.js をプレゼンテーション層として役割分担する標準構成を提示。
 
 ## ディレクトリ構成
 ```
@@ -27,10 +29,13 @@
 - Node.js 20 以上
 - npm 9 以上（または pnpm / yarn でも可）
 - Git CLI
+- Docker Compose
+- LocalStack（ローカルで AWS サービスを再現するため）
 
 ### 推奨ツール
 - Docker と Docker Compose（イベントストアや補助サービスをローカルで起動する場合）
 - OpenSpec CLI (`openspec` コマンド)
+- LocalStack CLI（`localstack`）と AWS CLI（LocalStack / AWS 双方の検証に利用）
 
 ## セットアップ
 ```bash
@@ -67,6 +72,17 @@ pnpm add -g openspec
 - 読み取りモデルはイベントハンドラで更新し、最終的整合性を前提に API へ提供する。  
 - プロセスマネージャ（サガ）は外部システムとの協調や補償処理を担当し、タイムアウト・リトライを明示的に扱う。  
 - テストは Given/When/Then 形式で仕様を直接表現し、`npm test` で統合する。  
+- 本番・ステージング・QA は AWS を標準基盤とし、イベントバスには Amazon Kinesis Data Streams を利用する。GraphQL サブスクリプション経由でドメインイベントをクライアントへ配信する設計を前提とする。  
+- ローカル/CI の動作確認は `docker compose` + LocalStack で AWS サービスを再現し、イベント配信と GraphQL サブスクリプションの再生テストを自動化する。  
+- ドメインモデル・ユースケースは GraphQL サーバ（例: Apollo Server）に集約し、Mutation/Query/Subscription がユースケースと 1:1 に対応するよう実装する。  
+- Next.js API Routes は BFF として GraphQL サーバへの通信・入力検証・セッション管理・レスポンス整形を担い、Next.js UI は BFF を介してデータ取得/更新・リアルタイム更新を行う。  
+
+## クラウド運用とローカル検証
+- `docker compose up` で LocalStack を起動し、Kinesis・Secrets Manager・その他必要な AWS サービスをエミュレートする。  
+- IaC（AWS CDK / CloudFormation / Terraform のいずれか）で AWS リソース構成をコード化し、環境差異を pull request レベルで追跡する。  
+- GraphQL ミューテーションはコマンド実行、クエリは読み取りモデル参照、サブスクリプションは Kinesis ストリームのイベントを配信する構成を想定する。  
+- ローカルから AWS へ切り替える際は、環境変数でエンドポイント・認証情報をスイッチし、LocalStack 用設定を README と各 spec/plan に明記する。  
+- CI では LocalStack を使った統合テストを必須とし、Kinesis ストリームの再生と GraphQL サブスクリプションの受信を確認する。
 
 ## 参考リポジトリ
 - `references/cqrs-es-example-js`：基本的な CQRS/ES 実装例。  

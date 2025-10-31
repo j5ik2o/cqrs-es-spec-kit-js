@@ -1,16 +1,18 @@
 <!--
 Sync Impact Report
-Version change: 1.5.4 → 1.5.5
+Version change: 1.6.0 → 1.7.0
 Modified principles:
-- 追加技術制約（値オブジェクトバリデーション方針を追加）
+- 追加技術制約（GraphQL/Next.js/BFF の責務分担を追加）
 Added sections:
-- なし
+- プレゼンテーションと BFF アーキテクチャ
 Removed sections:
 - なし
 Templates requiring updates:
 - ✅ .specify/templates/plan-template.md
 - ✅ .specify/templates/spec-template.md
 - ✅ .specify/templates/tasks-template.md
+- ✅ README.md
+- ✅ .codex/prompts/speckit.plan.md
 Follow-up TODOs:
 - なし
 -->
@@ -65,6 +67,27 @@ Follow-up TODOs:
 - MUST バリデータは値オブジェクトのコンストラクタを通じて検証し、生成に成功した場合は値オブジェクトを返し、失敗時はエラーを返却する。
 - MUST システム全体で CQRS と Event Sourcing を採用し、コマンドモデルとクエリモデルの責務分離を維持する。
 - MUST イベントストアには `@j5ik2o/event-store-adapter-js` を利用し、イベント永続化・ストリーム管理・スナップショットをこのアダプタで実装する。
+- MUST ドメインモデルとアプリケーションサービスは GraphQL サーバ（例: Apollo Server 等）に内包し、GraphQL の Mutation/Query/Subscription がユースケースと 1 対 1 で対応する。
+- MUST プレゼンテーション層は Next.js で実装し、UI から GraphQL サーバへのアクセスは Next.js API Routes を介した BFF を経由させる。
+- MUST Next.js API Routes は GraphQL サーバのクライアントとなり、UI からの入力検証・セッション管理・レスポンス整形を担い、UI から直接 GraphQL サーバへアクセスさせない。
+- MUST GraphQL サーバはプレゼンテーション層の状態や Next.js 固有のロジックに依存せず、純粋にドメイン／ユースケースロジックのみを保持する。
+- SHOULD Next.js フロントエンドは API Routes を通じた GraphQL 呼び出しを型安全なクライアント（例: GraphQL Code Generator）で行い、ドメインイベント通知はサブスクリプション経由で受け取る。
+
+## クラウド基盤とローカル検証
+- MUST 本番・ステージング・QA 環境は AWS を標準基盤とし、アプリケーション・イベントストア・周辺サービスを AWS 上のマネージド/セルフホスト資源で運用する。
+- MUST イベントバスは AWS Kinesis Data Streams を利用し、ドメインイベント配信・リプレイ・監視をこのストリーム上で行う。設定は IaC（AWS CDK / CloudFormation / Terraform のいずれか）でコード化する。
+- MUST ローカル開発および CI の動作確認は docker compose 上で LocalStack を起動し、AWS サービス（Kinesis、シークレット管理など）との整合を検証する。
+- MUST docker compose / LocalStack 構成はリポジトリ直下でバージョン管理し、環境変数・シークレットの差異が仕様とレンダリングドキュメントに反映されていることを保証する。
+- MUST 仕様・計画・タスクには AWS 環境で使用するサービスと LocalStack での代替方法を明記し、差異がある場合は理由と検証手順を記録する。
+- SHOULD GraphQL サブスクリプションやクライアント通知系のリアルタイム要件は Kinesis と連携したイベント配信フローで検証し、LocalStack 上でもサブスクリプション再生を自動テストする。
+
+## プレゼンテーションと BFF アーキテクチャ
+- MUST Next.js は純粋なプレゼンテーション層として SSR/ISR/CSR を提供し、ビジネスロジックを保持しない。
+- MUST Next.js API Routes は Backend for Frontend (BFF) として振る舞い、GraphQL サーバへの通信、セッション/トークン管理、外部 API 連携を集約する。
+- MUST GraphQL サーバはドメインモデル・ユースケース・CQRS/ES フローを提供する単一のアプリケーション境界とし、BFF 以外から直接アクセスさせない。
+- MUST BFF から GraphQL サーバへの通信は明示的なクライアントライブラリ（GraphQL フェッチャーなど）を介し、エラーマッピングと監査ログを記録する。
+- MUST UI 層は BFF を介した GraphQL 経由のデータ取得/更新・サブスクリプションによるリアルタイム受信を実装し、直接 DB やイベントバスへアクセスしない。
+- SHOULD BFF は GraphQL スキーマのバージョン差異を吸収し、フロントエンドへ安定した API 契約を提供する。
 
 ## CQRS/Event Sourcing 運用
 - コマンドハンドラは集約を操作し、成功時はイベントを生成してイベントストアへ永続化する。
@@ -137,4 +160,4 @@ Follow-up TODOs:
 - バージョンはセマンティックバージョニングを採用する（破壊的変更は MAJOR、原則追加や大幅拡張は MINOR、文言整理は PATCH）。
 - 憲章遵守レビューは各主要リリース前と四半期ごとに実施し、違反が判明した場合は是正計画と期日を記録する。
 
-**Version**: 1.5.5 | **Ratified**: 2025-10-31 | **Last Amended**: 2025-10-31
+**Version**: 1.7.0 | **Ratified**: 2025-10-31 | **Last Amended**: 2025-10-31
