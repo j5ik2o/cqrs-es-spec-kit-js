@@ -1,31 +1,60 @@
-# Project Context
+# プロジェクトコンテキスト
 
-## Purpose
-[Describe your project's purpose and goals]
+## 目的
+このリポジトリは、DDD/CQRS/Event Sourcing を採用するシステムを仕様駆動で設計・実装するための Spec Kit テンプレートです。OpenSpec による要求整理とシナリオ定義を出発点に、アグリゲート、コマンド、イベント、リードモデルを一貫した形式で記述し、後続の実装と検証を容易にします。
 
-## Tech Stack
-- [List your primary technologies]
-- [e.g., TypeScript, React, Node.js]
+## 技術スタック
+- Node.js 20 以降（テンプレート実行とツールチェーンのベース）
+- TypeScript 5 系（ドメインモデルの静的型付けとコマンド/イベント定義）
+- ESLint + Prettier（コード品質とフォーマッタの標準セット）
+- Vitest または Jest（ドメイン挙動とユースケースの自動テスト）
+- Docker Compose（任意：イベントストアやクエリ DB のローカル起動）
 
-## Project Conventions
+## プロジェクト規約
 
-### Code Style
-[Describe your code style preferences, formatting rules, and naming conventions]
+### コードスタイル
+- TypeScript は `strict` モードを有効化し、暗黙の `any` を禁止する。
+- ドメイン層のクラス・型は単一責任を守り、アグリゲート単位でファイルを分割する。
+- コマンド名・イベント名は `動詞 + 名詞` のパターンを採用し、過去分詞形イベントを原則とする。
+- ESLint（recommended + @typescript-eslint）と Prettier を併用し、自動整形をコミット前に実行する。
 
-### Architecture Patterns
-[Document your architectural decisions and patterns]
+### アーキテクチャパターン
+- Bounded Context ごとにアグリゲート、コマンドハンドラ、プロセスマネージャを定義し、依存関係を内向きに制限する。
+- 書き込みモデルは Event Sourcing を前提とし、リポジトリはイベントストアを介してアグリゲートを再構築する。
+- 読み取りモデルは CQRS の原則に従って独立させ、イベントハンドラで非同期投影を実施する。
+- ドメインサービスは副作用を排除し、ドメインイベントを返す純粋な関数またはメソッドとして設計する。
+- クロスコンテキスト連携はイベント駆動（Pub/Sub）を基本とし、同期要求はアンチパターンとして扱う。
 
-### Testing Strategy
-[Explain your testing approach and requirements]
+### テスト戦略
+- アグリゲートレベルでの Given/When/Then シナリオテストを必須とし、仕様に記載したシナリオをそのままテストケース化する。
+- コマンドハンドラのテストでは、リポジトリをインメモリ実装で置き換え、イベント発行の正当性を検証する。
+- 投影・クエリモデルはユニットテストに加えて、イベントストリームを再生する統合テストを用意する。
+- プロセスマネージャやサガはタイムアウトや並列イベントを含む異常系シナリオを最優先でカバーする。
+- テストは `npm test`（または `pnpm test`）で一括実行できるよう統合し、CI で必ず実行する。
 
-### Git Workflow
-[Describe your branching strategy and commit conventions]
+### Git ワークフロー
+- `main` を常にデプロイ可能な状態に保つトランクベース運用とし、変更は短命なフィーチャーブランチで開発する。
+- ブランチ名は `feature/<change-id>` 形式（例：`feature/add-order-aggregate`）を推奨する。
+- コミットメッセージは Conventional Commits（`feat:`, `fix:`, `chore:` など）に従い、仕様やタスク ID を本文に明記する。
+- PR では対象の OpenSpec change-id と対応するタスクの完了チェックを必ずリンクする。
 
-## Domain Context
-[Add domain-specific knowledge that AI assistants need to understand]
+## ドメインコンテキスト
+- `Aggregate`：ビジネスインバリアントを保護する単位。ID で一意に識別し、コマンドの検証とイベント生成を担う。
+- `Command`：利用者または外部システムからの意図を表現し、アグリゲートの状態遷移を要求する。
+- `Domain Event`：事実の記録。イベントストアに永続化され、リードモデルや他コンテキストへの通知トリガーとなる。
+- `Read Model`：クエリ負荷に最適化された投影結果。イベントハンドラが非同期で最新化する。
+- `Process Manager / Saga`：長時間または跨コンテキストのワークフローを管理し、補償処理やタイムアウトを制御する。
+- `Spec`：OpenSpec による振る舞い定義。要求、シナリオ、制約をコードと同等に扱い、仕様が唯一の真実源となる。
 
-## Important Constraints
-[List any technical, business, or regulatory constraints]
+## 重要な制約
+- コマンドハンドラは副作用を発生させる前にドメインルールの検証とイベント生成を完了させる。
+- イベントストアは追記専用であり、イベントの訂正は補償イベントで扱う（物理削除禁止）。
+- 読み取りモデルは最終的整合性を前提とし、クエリ要求には遅延や古いデータの可能性を明示する。
+- 仕様変更は OpenSpec の `changes/` 配下に proposal を追加し、承認前に実装を開始しない。
+- 外部システム統合はイベントドリブンかアウトボックスパターンを利用し、二重書き込みを避ける。
 
-## External Dependencies
-[Document key external services, APIs, or systems]
+## 外部依存
+- イベントストア：PostgreSQL + pg-binary-json、EventStoreDB、または DynamoDB を想定（選択はプロジェクト要求に合わせる）。
+- メッセージング：Kafka、RabbitMQ、またはクラウドイベントバス（AWS EventBridge 等）を利用してイベント配信を行う。
+- クエリ用データストア：PostgreSQL、Elasticsearch、または Redis を代表例として採用可能。
+- 監視・トレーシング：OpenTelemetry と Prometheus/Grafana を組み合わせ、イベントハンドラの遅延を可視化する。
