@@ -1,0 +1,103 @@
+# ═══════════════════════════════════════════════════
+# Node.js Dependencies
+# ═══════════════════════════════════════════════════
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ═══════════════════════════════════════════════════
+# Build Output
+# ═══════════════════════════════════════════════════
+dist/
+build/
+out/
+*.tsbuildinfo
+.next/
+.nuxt/
+.cache/
+.vuepress/dist/
+
+# ═══════════════════════════════════════════════════
+# Testing & Coverage
+# ═══════════════════════════════════════════════════
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+.vitest/
+
+# ═══════════════════════════════════════════════════
+# Environment & Secrets
+# ═══════════════════════════════════════════════════
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# ═══════════════════════════════════════════════════
+# IDE & Editor Settings
+# ═══════════════════════════════════════════════════
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ═══════════════════════════════════════════════════
+# Development Tools
+# ═══════════════════════════════════════════════════
+.codex/
+claudedocs/
+
+# ═══════════════════════════════════════════════════
+# Logs & Temporary Files
+# ═══════════════════════════════════════════════════
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# ═══════════════════════════════════════════════════
+# OS Generated Files
+# ═══════════════════════════════════════════════════
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ═══════════════════════════════════════════════════
+# Package Manager Locks (Optional - Uncomment if needed)
+# ═══════════════════════════════════════════════════
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ═══════════════════════════════════════════════════
+# TypeScript
+# ═══════════════════════════════════════════════════
+*.d.ts.map
+*.js.map
+
+# ═══════════════════════════════════════════════════
+# Misc
+# ═══════════════════════════════════════════════════
+*.orig
+.turbo/
+.vercel/
+.netlify/
