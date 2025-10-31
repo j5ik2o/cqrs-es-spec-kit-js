@@ -57,7 +57,6 @@ credentials.json
 # ═══════════════════════════════════════════════════
 # Development Tools
 # ═══════════════════════════════════════════════════
-.codex/
 claudedocs/
 
 # ═══════════════════════════════════════════════════
@@ -101,3 +100,7 @@ desktop.ini
 .turbo/
 .vercel/
 .netlify/
+/.codex/auth.json
+/.codex/version.json
+/.codex/log/
+/.codex/sessions/
