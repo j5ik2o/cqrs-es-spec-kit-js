@@ -10,6 +10,8 @@
 - 拡張用リファレンス：`references/` ディレクトリで各種サンプルリポジトリを参照可能。
 - AWS 運用と LocalStack 検証：本番・ステージングは AWS を前提とし、ローカル検証は docker compose + LocalStack で AWS サービスを再現するガイドラインを提供。
 - GraphQL × Next.js アーキテクチャ：GraphQL サーバにドメインロジックを集約し、Next.js API Routes を BFF、Next.js をプレゼンテーション層として役割分担する標準構成を提示。
+- 永続化構成の標準化：コマンド側は DynamoDB、リードモデルは MySQL、Read Model Updater は AWS Lambda で実装し、`references/cqrs-es-example-js` と同構成を採用。
+- モノレポ構成と依存制御：`references/cqrs-es-example-js/packages` に倣ったサブプロジェクト分割と、クリーンアーキテクチャ準拠の一方向依存をワークスペース設定で強制。
 
 ## ディレクトリ構成
 ```
@@ -27,7 +29,7 @@
 
 ## 前提環境
 - Node.js 20 以上
-- npm 9 以上（または pnpm / yarn でも可）
+- pnpm 9 以上
 - Git CLI
 - Docker Compose
 - LocalStack（ローカルで AWS サービスを再現するため）
@@ -41,14 +43,12 @@
 ```bash
 git clone <このリポジトリのURL>
 cd cqrs-es-spec-kit-js
-npm install
+pnpm install
 ```
 
-OpenSpec CLI をまだ導入していない場合は、グローバルまたは任意の方法でインストールしてください。
+OpenSpec CLI をまだ導入していない場合は、pnpm を用いてインストールしてください。
 
 ```bash
-npm install -g openspec
-# もしくは
 pnpm add -g openspec
 ```
 
@@ -68,19 +68,28 @@ pnpm add -g openspec
 
 ## 実装の指針
 - アグリゲートは不変条件を守るロジックのみ保持し、副作用や外部呼び出しはハンドラ側に寄せる。  
+- コマンドはアグリゲートが公開するメソッドとして実装し、独立したコマンドクラスは作成しない（`references/cqrs-es-example-js/packages/command/domain/src/group-chat/group-chat.ts` を参照）。  
+- Primitive Obsession を避け、数量・金額などのドメイン値は専用の値オブジェクトで表現し、不変条件と演算をドメインモデルへ埋め込む。  
 - コマンドハンドラでは、リポジトリを通じてアグリゲートを再構築し、新しいドメインイベントを生成して永続化する。  
+- ドメインイベントはアグリゲートごとに専用ファイル（例: `.../group-chat-events.ts`）で定義し、バージョンやシリアライズ形式を明確に管理する。  
 - 読み取りモデルはイベントハンドラで更新し、最終的整合性を前提に API へ提供する。  
 - プロセスマネージャ（サガ）は外部システムとの協調や補償処理を担当し、タイムアウト・リトライを明示的に扱う。  
-- テストは Given/When/Then 形式で仕様を直接表現し、`npm test` で統合する。  
+- テストは Given/When/Then 形式で仕様を直接表現し、`pnpm test` で統合する。  
 - 本番・ステージング・QA は AWS を標準基盤とし、イベントバスには Amazon Kinesis Data Streams を利用する。GraphQL サブスクリプション経由でドメインイベントをクライアントへ配信する設計を前提とする。  
 - ローカル/CI の動作確認は `docker compose` + LocalStack で AWS サービスを再現し、イベント配信と GraphQL サブスクリプションの再生テストを自動化する。  
 - ドメインモデル・ユースケースは GraphQL サーバ（例: Apollo Server）に集約し、Mutation/Query/Subscription がユースケースと 1:1 に対応するよう実装する。  
 - Next.js API Routes は BFF として GraphQL サーバへの通信・入力検証・セッション管理・レスポンス整形を担い、Next.js UI は BFF を介してデータ取得/更新・リアルタイム更新を行う。  
+- コマンド側の永続化は DynamoDB、リードモデルは MySQL（RDS など）で運用し、Read Model Updater を AWS Lambda として実装する。構成は `references/cqrs-es-example-js` と同じベースを採用する。  
+- DynamoDB のジャーナル/スナップショットテーブル形式は `references/cqrs-es-example-js/tools/dynamodb-setup/create-tables.sh` を基準にし、差分がある場合は仕様・計画・タスクへ記録する。  
+- `packages/` 配下のレイヤー分割は `references/cqrs-es-example-js/packages` を参照し、domain → application → interface → infrastructure の依存方向を pnpm workspace + turbo、TypeScript プロジェクトリファレンス、ESLint/biome ルールで強制する。逆向き依存が発生した場合はビルド/型チェックを失敗させる。  
+- BFF(API Routes) は OAuth2/OIDC フローを担当し、RSC と共有するトークン管理・GraphQL クライアントモジュールを提供する。RSC はこの共通モジュール経由で GraphQL を直接呼び出し、ブラウザ側コンポーネントは API Routes を介して GraphQL を利用する。  
 
 ## クラウド運用とローカル検証
 - `docker compose up` で LocalStack を起動し、Kinesis・Secrets Manager・その他必要な AWS サービスをエミュレートする。  
 - IaC（AWS CDK / CloudFormation / Terraform のいずれか）で AWS リソース構成をコード化し、環境差異を pull request レベルで追跡する。  
 - GraphQL ミューテーションはコマンド実行、クエリは読み取りモデル参照、サブスクリプションは Kinesis ストリームのイベントを配信する構成を想定する。  
+- DynamoDB（コマンド側）と MySQL（リードモデル）を LocalStack + MySQL コンテナで再現し、AWS Lambda 相当の Read Model Updater をローカル実行できるようにする。  
+- LocalStack での DynamoDB テーブル作成は `references/cqrs-es-example-js/tools/dynamodb-setup/create-tables.sh` を利用・参照し、ジャーナル/スナップショット形式の整合を確保する。  
 - ローカルから AWS へ切り替える際は、環境変数でエンドポイント・認証情報をスイッチし、LocalStack 用設定を README と各 spec/plan に明記する。  
 - CI では LocalStack を使った統合テストを必須とし、Kinesis ストリームの再生と GraphQL サブスクリプションの受信を確認する。
 

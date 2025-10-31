@@ -21,6 +21,8 @@
 **制約**: ドメイン / 法規制 / インフラ制約を列挙（AWS 運用前提、Kinesis、LocalStack との整合性を含める）  
 **規模・スコープ**: 想定ユーザー数やユースケース範囲
 **フロント/BFF/GraphQL**: Next.js UI, Next.js API Routes(BFF), GraphQL サーバ（ドメインロジック）の利用方法と分担
+**永続化/投影**: コマンド側 DynamoDB、リードモデル MySQL、Read Model Updater（AWS Lambda）の構成と差分
+**ワークスペース/パッケージ**: `references/cqrs-es-example-js/packages` 構成との対応、採用するワークスペースツール、層ごとの依存ルール
 
 ## 憲章準拠チェック
 
@@ -37,6 +39,9 @@
 - エラーハンドリング戦略: 回復可能性に基づき戻り値型（Either/Result 等）と例外使用境界が定義されているか。
 - クラウド基盤とローカル検証: AWS で運用するサービス（GraphQL API、イベントストア、Kinesis 等）と LocalStack/docker compose による検証手順が明記されているか。
 - プレゼンテーションと BFF: GraphQL サーバにドメインロジックを集約し、Next.js API Routes が BFF、Next.js が純粋なプレゼンテーションになる設計が成立しているか。
+- 永続化ストアとリードモデル: DynamoDB をコマンド側に、MySQL をリードモデルに用い、Read Model Updater を AWS Lambda で実装する計画が定義されているか。
+- パッケージ構成と依存制御: `references/cqrs-es-example-js/packages` に基づくパッケージ分割と依存ルールが定義され、逆依存がビルドエラーになる仕組みを整備しているか。
+- GraphQL アクセス方針: ブラウザ側は API Routes 経由、RSC は共有トークンモジュール経由で GraphQL に直接アクセスする設計が明文化されているか。
 
 ## プロジェクト構成
 
@@ -55,41 +60,30 @@ specs/[###-feature]/
 ### ソースコード（リポジトリルート）
 
 ```text
-src/
-├── domain/
-│   ├── entities/
-│   ├── value-objects/
-│   └── services/
-├── application/
-│   ├── use-cases/
-│   └── ports/
-└── interfaces/
-    ├── http/
-    ├── cli/
-    ├── persistence/
-    └── event/
-
-projections/
-├── read-models/
-└── subscribers/
-
-infrastructure/
-├── logging/
-├── config/
-└── utilities/
+packages/
+├── command/
+│   ├── domain/                   # ドメインモデル（集約メソッドとしてコマンドを実装）
+│   ├── processor/                # ユースケース/アプリケーションサービス
+│   ├── interface-adaptor-if/     # ポート定義（契約）
+│   └── interface-adaptor-impl/   # 実装（GraphQL リゾルバ、リポジトリ等、イベントストアアダプタ）
+├── query/
+│   └── interface-adaptor/        # 読み取りモデルの API / 投影
+├── rmu/                          # Read Model Updater（Lambda 等）
+├── infrastructure/               # クロスカッティング（ロギング、設定等）
+└── bootstrap/                    # エッジアプリ（GraphQL サーバ、CLI）
 
 tests/
-├── unit/         # ドメイン・ユースケース単体
-├── contract/     # ポート・アダプタ契約
-└── integration/  # ユースケース横断
+├── unit/         # パッケージ毎のユニットテスト (例: packages/**/src/**/*.test.ts)
+├── contract/     # ポート・アダプタ契約テスト
+└── integration/  # サブプロジェクト統合テスト
 ```
 
-**構成方針**: [このフィーチャで利用する実際のディレクトリ構成と差分を説明する]
+**構成方針**: [このフィーチャで利用するパッケージ構成と `references/cqrs-es-example-js/packages` との差分を説明する]
 
 ## ドメインモデル開発計画
 
 1. **ドメインテスト**: [作成するテストスイートとカバーするエッジケースを列挙する]
-2. **モデル実装**: [値オブジェクト・エンティティ・集約で扱う不変条件や振る舞いを記述する]
+2. **モデル実装**: [値オブジェクト・エンティティ・集約で扱う不変条件や振る舞いを記述する。Primitive Obsession を避け、金額・数量などのドメイン値は専用の値オブジェクトで表現する]
 3. **バリデーション方針**: [値オブジェクトのコンストラクタで検証し、成功時は値オブジェクトを返し、失敗時はエラーを返す設計を明記する]
 4. **リファクタリング**: [責務整理・命名統一の観点を示す]
 5. **インメモリリポジトリ**: [テスト用リポジトリの実装方針と扱う操作を明記する]
@@ -106,7 +100,7 @@ tests/
 
 ## CQRS/Event Sourcing 設計
 
-- **コマンドモデル**: [ハンドラ、集約、コマンド名、整合性制約、ユースケースとの関連。イベント保存が主目的である一方、リプレイや他集約確認など必要な読み込みの範囲を明記]
+- **コマンドモデル**: [ハンドラ、集約、コマンド名、整合性制約、ユースケースとの関連。コマンドは集約が公開するメソッドとして実装し（例: `group-chat.ts`）、独立したコマンドクラスを作成しないこと。イベント保存が主目的である一方、リプレイや他集約確認など必要な読み込みの範囲を明記し、発生させるドメインイベントは専用ファイル（例: `group-chat-events.ts`）で定義すること]
 - **クエリモデル**: [リードモデル、投影更新方式、最終的整合性の扱い。ドメインモデル・リポジトリを使用せずリードデータベースへ直接アクセスする設計]
 - **イベントスキーマ**: [イベント名、ペイロード、バージョニング/アップキャスト方針]
 - **イベントストア構成**: [`@j5ik2o/event-store-adapter-js` の接続設定、ストリーム命名規約、スナップショット]
@@ -120,6 +114,25 @@ tests/
 - **Next.js UI**: [SSR/CSR/ISR の使い分け、BFF との通信方法、GraphQL サブスクリプション受信フロー]
 - **エラーハンドリング**: [BFF でのエラーマッピング、UI への通知、監査ログとの連携]
 - **監視・計測**: [GraphQL サーバと BFF のメトリクス/ログ、分散トレーシング]
+- **アクセスポリシー**: [クライアントコンポーネントは API Route 経由で GraphQL を利用し、RSC は共有トークン管理モジュールから GraphQL に直接アクセスする設計を記述する]
+
+## 永続化と投影設計
+
+- **コマンド永続化**: [DynamoDB テーブル設計、パーティション/ソートキー、RCU/WCU、TTL、セキュリティ]
+- **イベントストア**: [DynamoDB + `@j5ik2o/event-store-adapter-js` の利用方法、スナップショットテーブル、ストリーム設定]
+- **リードモデル**: [MySQL スキーマ設計、インデックス、マイグレーション手順、接続プール]
+- **Read Model Updater**: [AWS Lambda 実装方針、デプロイパイプライン、Kinesis トリガ、リトライ/デッドレター設定]
+- **ローカル/CI**: [LocalStack + MySQL コンテナの起動手順、Lambda 実行の代替（ローカル Node.js/ AWS SAM など）、テストデータのシーディング]
+- **監視/運用**: [DynamoDB/ MySQL/ Lambda のメトリクス、アラート設定、コスト管理]
+- **テーブルフォーマット**: [`references/cqrs-es-example-js/tools/dynamodb-setup/create-tables.sh` を参照し、ジャーナル/スナップショットテーブルの形式と差分を記載する]
+
+## リポジトリ構成と依存制御
+
+- **ワークスペース管理**: [pnpm の workspace 設定、`packages/` 配置、turbo 等のビルドスクリプト]
+- **パッケージ構造**: [`references/cqrs-es-example-js/packages` に基づく各層のサブプロジェクト一覧と対応関係（domain/application/interface/infrastructure/rmu 等）]
+- **依存ルール**: [層の依存方向、`package.json` の依存宣言、TypeScript プロジェクトリファレンス、ESLint/biome ルールでの検証方法]
+- **ビルドガード**: [turbo や自動テストで逆依存を検出する仕組み、CI でのチェック手順]
+- **ドキュメント化**: [README/plan/spec へ反映するガイドライン、差異発生時の記録方法]
 
 ## リファレンス資産の活用
 
