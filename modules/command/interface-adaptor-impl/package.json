@@ -1,13 +1,15 @@
 {
-  "name": "cqrs-es-spec-kit-js-command-interface-adaptor-if",
+  "name": "cqrs-es-example-js-command-interface-adaptor-impl",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc && rm -f dist/internal/*.test.d.ts && rm -f dist/internal/*.test.js && rm -fr dist/internal/test",
+    "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/repository/group-chat/*.test.*",
     "test": "jest --no-cache",
     "lint": "biome check ./src",
-    "fix": "biome format --write ./src",
+    "lint:fix": "biome check --write ./src",
+    "format": "biome format ./src",
+    "format:fix": "biome format --write ./src",
     "clean": "rimraf ./dist"
   },
   "keywords": [],
@@ -28,12 +30,20 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "event-store-adapter-js": "2.2.147",
-    "cqrs-es-spec-kit-js-command-domain": "workspace:*",
     "@aws-sdk/client-dynamodb": "^3.413.0",
     "aws-sdk": "^2.1459.0",
+    "cqrs-es-spec-kit-js-command-domain": "workspace:*",
+    "cqrs-es-spec-kit-js-command-interface-adaptor-if": "workspace:*",
+    "cqrs-es-spec-kit-js-command-processor": "workspace:*",
+    "event-store-adapter-js": "2.2.147",
+    "fp-ts": "^2.16.2",
     "moment": "^2.29.4",
-    "fp-ts": "^2.16.2"
+    "graphql": "^16.8.1",
+    "graphql-fields": "^2.0.3",
+    "graphql-scalars": "^1.22.4",
+    "tslib": "^2.6.2",
+    "type-graphql": "2.0.0-rc.2",
+    "tslog": "^4.9.2"
   },
   "engines": {
     "node": ">=20.5.0",
