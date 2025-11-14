@@ -1,0 +1,6 @@
+packages:
+#  - 'modules/bootstrap'
+#  - 'modules/infrastructure'
+#  - 'modules/rmu'
+  - 'modules/command/*'
+#  - 'modules/query/*'
