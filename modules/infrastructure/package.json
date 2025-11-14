@@ -1,10 +1,12 @@
 {
-  "name": "cqrs-es-spec-kit-js-command-interface-adaptor-impl",
+  "name": "cqrs-es-spec-kit-js-infrastructure",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/repository/group-chat/*.test.*",
+    "start": "ts-node src/index.ts",
+    "start-write-api": "node dist/index.js writeApi",
+    "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/*.test.*",
     "test": "jest --no-cache",
     "lint": "biome check ./src",
     "lint:fix": "biome check --write ./src",
@@ -24,26 +26,15 @@
     "@typescript-eslint/parser": "catalog:",
     "jest": "catalog:",
     "rimraf": "catalog:",
-    "testcontainers": "catalog:",
     "ts-jest": "catalog:",
     "ts-node": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "catalog:",
-    "aws-sdk": "catalog:",
-    "cqrs-es-spec-kit-js-command-domain": "workspace:*",
-    "cqrs-es-spec-kit-js-command-interface-adaptor-if": "workspace:*",
-    "cqrs-es-spec-kit-js-command-processor": "workspace:*",
-    "event-store-adapter-js": "catalog:",
     "fp-ts": "catalog:",
     "moment": "catalog:",
-    "graphql": "catalog:",
-    "graphql-fields": "catalog:",
-    "graphql-scalars": "catalog:",
-    "tslib": "catalog:",
-    "type-graphql": "catalog:",
-    "tslog": "catalog:"
+    "tslog": "catalog:",
+    "ulidx": "catalog:"
   },
   "engines": {
     "node": ">=20.5.0",
