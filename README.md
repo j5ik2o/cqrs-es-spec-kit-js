@@ -90,6 +90,126 @@ This template is designed for **developers who understand DDD/CQRS/ES fundamenta
 
 ---
 
+## Example Implementation: Order Domain
+
+This repository includes a complete **Order domain** implementation demonstrating the full CQRS/ES stack:
+
+### Domain Model
+
+**Aggregate Root**: `Order` (modules/command/domain/src/order/)
+- Value Objects: `OrderId`, `OrderName`
+- Entity: `OrderItem` with `OrderItemId`, `Quantity`, `Price`
+- Domain Events: `OrderCreated`, `OrderItemAdded`, `OrderItemRemoved`, `OrderDeleted`
+
+**Key Features**:
+- Event sourcing with `replay()` and `applyEvent()` methods
+- Immutable command methods returning `[newState, event]` tuples
+- Snapshot optimization via `OrderRepositoryImpl` (every 100 events)
+
+### Module Structure
+
+```
+modules/
+├── command/
+│   ├── domain/                      # Order aggregate and events
+│   ├── interface-adaptor-if/        # OrderRepository interface
+│   ├── interface-adaptor-impl/      # EventStore integration
+│   └── processor/                   # OrderCommandProcessor
+├── query/
+│   └── interface-adaptor/           # GraphQL query resolvers
+├── rmu/
+│   └── src/                         # Read model updater (Prisma)
+└── bootstrap/
+    ├── write-api-main.ts            # Command API server
+    ├── read-api-main.ts             # Query API server
+    └── local-rmu-main.ts            # LocalStack RMU
+```
+
+### Running the Example
+
+1. **Start infrastructure**:
+   ```bash
+   docker-compose up -d  # DynamoDB, PostgreSQL, LocalStack
+   ```
+
+2. **Build and start servers**:
+   ```bash
+   pnpm install
+   pnpm build
+
+   # Terminal 1: Write API (port 38080)
+   node modules/bootstrap/dist/index.js writeApi
+
+   # Terminal 2: Read API (port 38082)
+   node modules/bootstrap/dist/index.js readApi
+
+   # Terminal 3: Read Model Updater
+   node modules/bootstrap/dist/index.js localRmu
+   ```
+
+3. **Run E2E tests**:
+   ```bash
+   ./tools/e2e-test/verify-order.sh
+   ```
+
+### GraphQL API Examples
+
+**Create Order**:
+```graphql
+mutation {
+  createOrder(input: {
+    name: "Sample Order"
+    executorId: "UserAccount-01H42K4ABWQ5V2XQEP3A48VE0Z"
+  }) {
+    orderId
+  }
+}
+```
+
+**Add Item**:
+```graphql
+mutation {
+  addItem(input: {
+    orderId: "Order-01234567890"
+    name: "Product A"
+    quantity: 2
+    price: 1000
+    executorId: "UserAccount-01H42K4ABWQ5V2XQEP3A48VE0Z"
+  }) {
+    orderId
+    itemId
+  }
+}
+```
+
+**Query Order**:
+```graphql
+query {
+  getOrder(orderId: "Order-01234567890") {
+    id
+    name
+    deleted
+    createdAt
+    updatedAt
+  }
+}
+```
+
+### Learning from the Example
+
+This implementation demonstrates:
+- ✅ Event-sourced aggregate with replay mechanism
+- ✅ EventStore integration with DynamoDB backend
+- ✅ Snapshot strategy for performance optimization
+- ✅ CQRS separation with GraphQL APIs
+- ✅ Read model projection with Prisma
+- ✅ LocalStack integration for local development
+- ✅ Complete E2E test coverage
+
+**Use as a reference** when building your own domain models following the same patterns.
+
+---
+
 ## Architecture
 
 ### System Components
@@ -594,6 +714,36 @@ All AI tools share the same underlying Kiro workflow and specifications in `.kir
 - Complete command execution (mutation → event → projection → query)
 - Docker Compose environment testing
 - Event replay and snapshot recovery
+
+#### Running E2E Tests (Order Domain Example)
+
+The repository includes a comprehensive E2E test script for the Order domain implementation:
+
+```bash
+# Set up environment variables (optional, defaults shown)
+export EXECUTOR_ID="UserAccount-01H42K4ABWQ5V2XQEP3A48VE0Z"
+export WRITE_API_SERVER_BASE_URL="http://localhost:38080"
+export READ_API_SERVER_BASE_URL="http://localhost:38082"
+
+# Run the E2E test script
+./tools/e2e-test/verify-order.sh
+```
+
+**Test Coverage**:
+- ✅ Order creation (createOrder mutation)
+- ✅ Item addition (addItem mutation with 2 items)
+- ✅ Order retrieval (getOrder query)
+- ✅ Order list retrieval (getOrders query)
+- ✅ OrderItem retrieval (getOrderItem query)
+- ✅ OrderItem list retrieval (getOrderItems query)
+- ✅ Item removal (removeItem mutation)
+- ✅ Order deletion (deleteOrder mutation)
+- ✅ Verification of eventual consistency (read model updates)
+
+**Prerequisites**:
+- Write API server running on port 38080
+- Read API server running on port 38082
+- `jq` command-line tool installed for JSON processing
 
 ---
 

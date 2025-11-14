@@ -30,6 +30,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "cqrs-es-spec-kit-js-infrastructure": "workspace:*",
     "event-store-adapter-js": "catalog:",
     "fp-ts": "catalog:",
     "ulidx": "catalog:"

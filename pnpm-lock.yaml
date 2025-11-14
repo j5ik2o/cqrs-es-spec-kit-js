@@ -216,6 +216,9 @@ importers:
 
   modules/command/domain:
     dependencies:
+      cqrs-es-spec-kit-js-infrastructure:
+        specifier: workspace:*
+        version: link:../../infrastructure
       event-store-adapter-js:
         specifier: 'catalog:'
         version: 2.2.147
