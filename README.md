@@ -1,103 +1,661 @@
-# CQRS / ES Spec Kit for TypeScript
+# cqrs-es-spec-kit-js
 
-このリポジトリは、DDD（Domain-Driven Design）、CQRS（Command Query Responsibility Segregation）、Event Sourcing を実践するための仕様駆動テンプレートです。大きな粒度の初期立ち上げやモジュール単位の機能追加では GitHub Spec Kit を活用し、保守や小規模対応では OpenSpec を用いてスコープを明示しながらタスクを進めます。これにより、AI 支援で頻発するコンテキスト溢れやゴールポストのずれを抑止し、仕様と実装の整合性を保ちます。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## 主な特徴
-- GitHub Spec Kit を用いた大規模ブートストラップ：最初期の土台作りやモジュール単位の大きな追加を体系的に管理。
-- OpenSpec による要求管理：`openspec/project.md` と `openspec/specs/` を中心に、保守系タスクのスコープを明確化しながら要件・シナリオを文書化。
-- DDD/CQRS/ES 向けのベストプラクティス：アグリゲート、コマンド、イベント、リードモデルの設計指針を整理。
-- TypeScript/Node.js ベース：厳格な型安全性とモジュール構成を前提にしたテンプレート。
-- 拡張用リファレンス：`references/` ディレクトリで各種サンプルリポジトリを参照可能。
-- AWS 運用と LocalStack 検証：本番・ステージングは AWS を前提とし、ローカル検証は docker compose + LocalStack で AWS サービスを再現するガイドラインを提供。
-- GraphQL × Next.js アーキテクチャ：GraphQL サーバにドメインロジックを集約し、Next.js API Routes を BFF、Next.js をプレゼンテーション層として役割分担する標準構成を提示。
-- 永続化構成の標準化：コマンド側は DynamoDB、リードモデルは MySQL、Read Model Updater は AWS Lambda で実装し、`references/cqrs-es-example-js` と同構成を採用。
-- モノレポ構成と依存制御：`references/cqrs-es-example-js/packages` に倣ったサブプロジェクト分割と、クリーンアーキテクチャ準拠の一方向依存をワークスペース設定で強制。
+**AI-Driven Specification Kit for CQRS/Event Sourcing with DDD and GraphQL**
 
-## ディレクトリ構成
+A comprehensive template repository that combines Domain-Driven Design (DDD), CQRS/Event Sourcing patterns, and GraphQL with AI-powered specification-driven development workflows.
+
+[日本語](./README.ja.md)
+
+---
+
+## Overview
+
+`cqrs-es-spec-kit-js` provides a production-ready foundation for building scalable event-sourced systems using:
+
+- **Domain-Driven Design (DDD)**: Tactical patterns for aggregate modeling and bounded contexts
+- **CQRS/Event Sourcing**: Complete separation of write and read models with event-driven architecture
+- **GraphQL**: Type-safe API layer for both commands (mutations) and queries
+- **AI-Driven Specification**: Kiro-style workflow leveraging AI tools (Claude Code, Gemini, Codex) for systematic feature development
+
+This template is designed for **developers who understand DDD/CQRS/ES fundamentals** and are seeking proven implementation patterns and AI-assisted development workflows.
+
+---
+
+## Features
+
+### Core Architecture
+- ✅ **Event Store Foundation**: Built on [event-store-adapter-js](https://github.com/j5ik2o/event-store-adapter-js) with DynamoDB backend
+- ✅ **CQRS Implementation**: Separated write and read models with GraphQL API
+- ✅ **Read Model Updater**: Event-driven projection builder for query-side optimization
+- ✅ **Reference Implementation**: Production-grade example from [cqrs-es-example-js](https://github.com/j5ik2o/cqrs-es-example-js)
+
+### AI-Powered Development
+- ✅ **Kiro Workflow**: Structured specification → design → implementation phases
+- ✅ **Multi-AI Support**: Works with Claude Code, Gemini, and Codex
+- ✅ **Project Memory**: `.kiro/steering/` for persistent architectural decisions
+- ✅ **Spec-Driven**: `.kiro/specs/` for feature-level development tracking
+
+### Development Tools
+- ✅ **Docker Compose**: Complete local development environment
+- ✅ **Type Safety**: Full TypeScript implementation
+- ✅ **GraphQL Tooling**: Apollo Server with TypeGraphQL decorators
+- ✅ **ORM Integration**: Prisma for read model persistence
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ (LTS recommended)
+- Docker & Docker Compose (for local infrastructure)
+- AI Coding Tool: Claude Code, Gemini, or Codex
+- Basic understanding of DDD, CQRS/ES, and GraphQL
+
+### Installation
+
+1. **Use this template**:
+   ```bash
+   # Click "Use this template" on GitHub, or clone directly:
+   git clone --recursive https://github.com/YOUR_USERNAME/YOUR_PROJECT.git
+   cd YOUR_PROJECT
+   ```
+
+2. **Initialize submodules** (reference implementations):
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   npm install
+
+   # Add event-store-adapter-js to your project
+   npm install event-store-adapter-js
+   ```
+
+4. **Explore reference implementations** (for AI code reading):
+   ```bash
+   # The references/ directory contains example code for AI tools to reference
+   # These are NOT used as runtime dependencies
+
+   # Check the complete working example
+   cd references/cqrs-es-example-js
+
+   # Review event store adapter implementation patterns
+   cd references/event-store-adapter-js
+   ```
+
+---
+
+## Architecture
+
+### System Components
+
 ```
-.
-├── openspec/          # OpenSpec 定義ファイル群
-│   ├── project.md     # プロジェクト全体のコンテキスト
-│   ├── specs/         # 確定済み仕様（初期状態では空）
-│   └── changes/       # 進行中の変更提案（デフォルトでは空）
-├── references/        # 関連するサンプル・外部リポジトリへのリンク
-├── scripts/           # AI エージェント実行用スクリプト
-├── package.json       # Node.js / TypeScript 設定の起点
-├── README.md          # このファイル
-└── .github/spec-kit/  # GitHub Spec Kit 用の設定（必要に応じて追加）
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  Write API      │      │ Read Model      │      │  Read API       │
+│  (GraphQL)      │      │ Updater (RMU)   │      │  (GraphQL)      │
+│                 │      │                 │      │                 │
+│  Mutations      │─────▶│  Event Stream   │─────▶│  Queries        │
+│  + Aggregates   │      │  Processing     │      │  + Projections  │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+  ┌─────────────┐         ┌─────────────┐        ┌─────────────┐
+  │  Event      │         │  Event      │        │  Read Model │
+  │  Store      │────────▶│  Stream     │        │  Database   │
+  │ (DynamoDB)  │         │ (DynamoDB)  │        │ (PostgreSQL)│
+  └─────────────┘         └─────────────┘        └─────────────┘
 ```
 
-## 前提環境
-- Node.js 20 以上
-- pnpm 9 以上
-- Git CLI
-- Docker Compose
-- LocalStack（ローカルで AWS サービスを再現するため）
+### Layer Structure
 
-### 推奨ツール
-- Docker と Docker Compose（イベントストアや補助サービスをローカルで起動する場合）
-- OpenSpec CLI (`openspec` コマンド)
-- LocalStack CLI（`localstack`）と AWS CLI（LocalStack / AWS 双方の検証に利用）
+Based on Clean Architecture and DDD tactical patterns:
 
-## セットアップ
+```
+packages/
+├── command/                      # Write side (CQRS)
+│   ├── domain/                  # Pure domain logic
+│   │   ├── aggregates/          # Aggregate roots
+│   │   ├── entities/            # Domain entities
+│   │   ├── value-objects/       # Immutable values
+│   │   └── events/              # Domain events
+│   ├── interface-adaptor-if/    # Port definitions
+│   ├── interface-adaptor-impl/  # Adapter implementations
+│   └── processor/               # Application services
+│
+├── query/                        # Read side (CQRS)
+│   ├── interface-adaptor/       # GraphQL resolvers
+│   └── domain/                  # Read model DTOs
+│
+├── rmu/                          # Read Model Updater
+│   ├── processors/              # Event handlers
+│   └── projections/             # Read model builders
+│
+└── infrastructure/               # Shared infrastructure
+    ├── event-store/             # Event persistence
+    └── database/                # Read model storage
+```
+
+---
+
+## Implementation Patterns
+
+### 1. Event-Sourced Aggregate
+
+**Domain Layer** (`packages/command/domain/`):
+
+```typescript
+// user-account.ts
+export class UserAccount {
+  private constructor(
+    public readonly id: UserAccountId,
+    public readonly name: string,
+    public readonly sequenceNumber: number,
+    public readonly version: number
+  ) {}
+
+  // Factory method
+  static create(id: UserAccountId, name: string): [UserAccount, UserAccountCreated] {
+    const account = new UserAccount(id, name, 1, 1);
+    const event = new UserAccountCreated(id, name);
+    return [account, event];
+  }
+
+  // Command method
+  rename(newName: string): [UserAccount, UserAccountRenamed] {
+    const updated = new UserAccount(
+      this.id,
+      newName,
+      this.sequenceNumber + 1,
+      this.version + 1
+    );
+    const event = new UserAccountRenamed(this.id, newName);
+    return [updated, event];
+  }
+
+  // Event replay for sourcing
+  static replay(events: UserAccountEvent[], snapshot?: UserAccount): UserAccount {
+    let account = snapshot ?? throw new Error("Initial snapshot required");
+    for (const event of events) {
+      account = account.applyEvent(event);
+    }
+    return account;
+  }
+
+  private applyEvent(event: UserAccountEvent): UserAccount {
+    if (event instanceof UserAccountRenamed) {
+      return new UserAccount(
+        this.id,
+        event.name,
+        this.sequenceNumber + 1,
+        this.version + 1
+      );
+    }
+    return this;
+  }
+}
+```
+
+### 2. Repository with Event Store
+
+**Repository Layer** (`packages/command/interface-adaptor-impl/`):
+
+```typescript
+import { EventStore } from 'event-store-adapter-js';
+
+export class UserAccountRepository {
+  constructor(
+    private readonly eventStore: EventStore<
+      UserAccountId,
+      UserAccount,
+      UserAccountEvent
+    >
+  ) {}
+
+  async storeEvent(event: UserAccountEvent, version: number): Promise<void> {
+    await this.eventStore.persistEvent(event, version);
+  }
+
+  async storeEventAndSnapshot(
+    event: UserAccountEvent,
+    snapshot: UserAccount
+  ): Promise<void> {
+    await this.eventStore.persistEventAndSnapshot(event, snapshot);
+  }
+
+  async findById(id: UserAccountId): Promise<UserAccount | undefined> {
+    const snapshot = await this.eventStore.getLatestSnapshotById(
+      id,
+      convertJSONToUserAccount
+    );
+
+    if (!snapshot) return undefined;
+
+    const events = await this.eventStore.getEventsByIdSinceSequenceNumber(
+      id,
+      snapshot.sequenceNumber + 1,
+      convertJSONToUserAccountEvent
+    );
+
+    return UserAccount.replay(events, snapshot);
+  }
+}
+```
+
+### 3. GraphQL Mutation (Write API)
+
+**GraphQL Resolver** (`packages/command/interface-adaptor-impl/`):
+
+```typescript
+import { Resolver, Mutation, Arg } from 'type-graphql';
+
+@Resolver()
+export class UserAccountMutationResolver {
+  constructor(private readonly repository: UserAccountRepository) {}
+
+  @Mutation(() => UserAccountPayload)
+  async createUserAccount(
+    @Arg('input') input: CreateUserAccountInput
+  ): Promise<UserAccountPayload> {
+    const id = new UserAccountId(ulid());
+    const [account, event] = UserAccount.create(id, input.name);
+
+    await this.repository.storeEventAndSnapshot(event, account);
+
+    return { userAccountId: id.value };
+  }
+
+  @Mutation(() => UserAccountPayload)
+  async renameUserAccount(
+    @Arg('input') input: RenameUserAccountInput
+  ): Promise<UserAccountPayload> {
+    const id = new UserAccountId(input.userAccountId);
+    const account = await this.repository.findById(id);
+
+    if (!account) throw new Error('Account not found');
+
+    const [updated, event] = account.rename(input.newName);
+    await this.repository.storeEvent(event, updated.version);
+
+    return { userAccountId: id.value };
+  }
+}
+```
+
+### 4. Read Model Projection (RMU)
+
+**Event Processor** (`packages/rmu/`):
+
+```typescript
+export class UserAccountProjection {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async handleUserAccountCreated(event: UserAccountCreated): Promise<void> {
+    await this.prisma.userAccountReadModel.create({
+      data: {
+        id: event.aggregateId.value,
+        name: event.name,
+        createdAt: event.occurredAt,
+        updatedAt: event.occurredAt,
+      },
+    });
+  }
+
+  async handleUserAccountRenamed(event: UserAccountRenamed): Promise<void> {
+    await this.prisma.userAccountReadModel.update({
+      where: { id: event.aggregateId.value },
+      data: {
+        name: event.name,
+        updatedAt: event.occurredAt,
+      },
+    });
+  }
+}
+```
+
+### 5. GraphQL Query (Read API)
+
+**Query Resolver** (`packages/query/interface-adaptor/`):
+
+```typescript
+@Resolver()
+export class UserAccountQueryResolver {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  @Query(() => UserAccountReadModel, { nullable: true })
+  async userAccount(
+    @Arg('id') id: string
+  ): Promise<UserAccountReadModel | null> {
+    return this.prisma.userAccountReadModel.findUnique({
+      where: { id },
+    });
+  }
+
+  @Query(() => [UserAccountReadModel])
+  async userAccounts(): Promise<UserAccountReadModel[]> {
+    return this.prisma.userAccountReadModel.findMany();
+  }
+}
+```
+
+---
+
+## Kiro Workflow: AI-Driven Development
+
+### Workflow Phases
+
+The Kiro specification-driven workflow enables systematic feature development with AI assistance:
+
+```
+Phase 0: Steering (Optional)
+    ↓
+Phase 1: Specification
+    ├─ Requirements Discovery
+    ├─ Gap Analysis (optional)
+    ├─ Technical Design
+    ├─ Design Review (optional)
+    └─ Task Generation
+    ↓
+Phase 2: Implementation
+    ├─ TDD-Driven Coding
+    └─ Validation (optional)
+```
+
+### Commands Reference
+
+All commands work with Claude Code (`/kiro:*`), Gemini, and Codex with appropriate configuration.
+
+#### Phase 0: Project Steering (Optional)
+
 ```bash
-git clone <このリポジトリのURL>
-cd cqrs-es-spec-kit-js
-pnpm install
+# Initialize project-wide architectural decisions
+/kiro:steering
+
+# Add custom steering documents (API standards, testing strategy, etc.)
+/kiro:steering-custom
 ```
 
-OpenSpec CLI をまだ導入していない場合は、pnpm を用いてインストールしてください。
+**Purpose**: Establish project memory for consistent AI guidance across features.
+
+#### Phase 1: Specification
 
 ```bash
-pnpm add -g openspec
+# 1. Initialize a new feature specification
+/kiro:spec-init "User authentication with JWT and refresh tokens"
+
+# 2. Generate detailed requirements
+/kiro:spec-requirements authentication
+
+# 3. (Optional) Analyze gaps in existing codebase
+/kiro:validate-gap authentication
+
+# 4. Create technical design document
+/kiro:spec-design authentication [-y]  # -y skips approval prompt
+
+# 5. (Optional) Review design quality
+/kiro:validate-design authentication
+
+# 6. Generate implementation tasks
+/kiro:spec-tasks authentication [-y]
+
+# Check progress anytime
+/kiro:spec-status authentication
 ```
 
-## ワークフロー全体像
+#### Phase 2: Implementation
 
-### GitHub Spec Kit（大規模変更・初期構築向け）
-1. **Change Blueprint の作成**：GitHub Spec Kit のテンプレートに従って、機能単位の要求、非機能要件、成果物を定義する。  
-2. **レビューと合意形成**：関係者レビューを通じて大まかなスコープとマイルストーンを確定する。  
-3. **実装フェーズ**：決定した設計方針に沿ってコードを整備し、完了後に GitHub Spec Kit の成果物を更新する。  
+```bash
+# Execute tasks with TDD methodology
+/kiro:spec-impl authentication          # All tasks
+/kiro:spec-impl authentication 1,2,3    # Specific tasks
 
-### OpenSpec（保守・小規模タスク向け）
-1. **コンテキスト把握**：`openspec/project.md` を読み、前提・制約・規約を理解する。  
-2. **既存仕様の確認**：`openspec list --specs` や `openspec show <spec-id>` で既存の能力を確認。  
-3. **変更提案の作成**：新しい機能や仕様変更が必要な場合は `openspec/changes/<change-id>/` に proposal を作成し、`openspec validate <change-id> --strict` で検証。  
-4. **実装**：提案が承認されたら、`tasks.md` の TODO を完了させながらコードを実装する。  
-5. **アーカイブ**：デプロイ完了後は `openspec archive <change-id>` で変更をアーカイブし、`specs/` を最新化する。
+# Validate implementation against spec
+/kiro:validate-impl authentication
+```
 
-## 実装の指針
-- アグリゲートは不変条件を守るロジックのみ保持し、副作用や外部呼び出しはハンドラ側に寄せる。  
-- コマンドはアグリゲートが公開するメソッドとして実装し、独立したコマンドクラスは作成しない（`references/cqrs-es-example-js/packages/command/domain/src/group-chat/group-chat.ts` を参照）。  
-- Primitive Obsession を避け、数量・金額などのドメイン値は専用の値オブジェクトで表現し、不変条件と演算をドメインモデルへ埋め込む。  
-- コマンドハンドラでは、リポジトリを通じてアグリゲートを再構築し、新しいドメインイベントを生成して永続化する。  
-- ドメインイベントはアグリゲートごとに専用ファイル（例: `.../group-chat-events.ts`）で定義し、バージョンやシリアライズ形式を明確に管理する。  
-- 読み取りモデルはイベントハンドラで更新し、最終的整合性を前提に API へ提供する。  
-- プロセスマネージャ（サガ）は外部システムとの協調や補償処理を担当し、タイムアウト・リトライを明示的に扱う。  
-- テストは Given/When/Then 形式で仕様を直接表現し、`pnpm test` で統合する。  
-- 本番・ステージング・QA は AWS を標準基盤とし、イベントバスには Amazon Kinesis Data Streams を利用する。GraphQL サブスクリプション経由でドメインイベントをクライアントへ配信する設計を前提とする。  
-- ローカル/CI の動作確認は `docker compose` + LocalStack で AWS サービスを再現し、イベント配信と GraphQL サブスクリプションの再生テストを自動化する。  
-- ドメインモデル・ユースケースは GraphQL サーバ（例: Apollo Server）に集約し、Mutation/Query/Subscription がユースケースと 1:1 に対応するよう実装する。  
-- Next.js API Routes は BFF として GraphQL サーバへの通信・入力検証・セッション管理・レスポンス整形を担い、Next.js UI は BFF を介してデータ取得/更新・リアルタイム更新を行う。  
-- コマンド側の永続化は DynamoDB、リードモデルは MySQL（RDS など）で運用し、Read Model Updater を AWS Lambda として実装する。構成は `references/cqrs-es-example-js` と同じベースを採用する。  
-- DynamoDB のジャーナル/スナップショットテーブル形式は `references/cqrs-es-example-js/tools/dynamodb-setup/create-tables.sh` を基準にし、差分がある場合は仕様・計画・タスクへ記録する。  
-- `packages/` 配下のレイヤー分割は `references/cqrs-es-example-js/packages` を参照し、domain → application → interface → infrastructure の依存方向を pnpm workspace + turbo、TypeScript プロジェクトリファレンス、ESLint/biome ルールで強制する。逆向き依存が発生した場合はビルド/型チェックを失敗させる。  
-- BFF(API Routes) は OAuth2/OIDC フローを担当し、RSC と共有するトークン管理・GraphQL クライアントモジュールを提供する。RSC はこの共通モジュール経由で GraphQL を直接呼び出し、ブラウザ側コンポーネントは API Routes を介して GraphQL を利用する。  
+### Steering vs. Specification
 
-## クラウド運用とローカル検証
-- `docker compose up` で LocalStack を起動し、Kinesis・Secrets Manager・その他必要な AWS サービスをエミュレートする。  
-- IaC（AWS CDK / CloudFormation / Terraform のいずれか）で AWS リソース構成をコード化し、環境差異を pull request レベルで追跡する。  
-- GraphQL ミューテーションはコマンド実行、クエリは読み取りモデル参照、サブスクリプションは Kinesis ストリームのイベントを配信する構成を想定する。  
-- DynamoDB（コマンド側）と MySQL（リードモデル）を LocalStack + MySQL コンテナで再現し、AWS Lambda 相当の Read Model Updater をローカル実行できるようにする。  
-- LocalStack での DynamoDB テーブル作成は `references/cqrs-es-example-js/tools/dynamodb-setup/create-tables.sh` を利用・参照し、ジャーナル/スナップショット形式の整合を確保する。  
-- ローカルから AWS へ切り替える際は、環境変数でエンドポイント・認証情報をスイッチし、LocalStack 用設定を README と各 spec/plan に明記する。  
-- CI では LocalStack を使った統合テストを必須とし、Kinesis ストリームの再生と GraphQL サブスクリプションの受信を確認する。
+| Aspect | Steering (`.kiro/steering/`) | Specification (`.kiro/specs/`) |
+|--------|------------------------------|--------------------------------|
+| **Scope** | Project-wide patterns | Feature-specific design |
+| **Lifetime** | Long-lived (months/years) | Short-lived (days/weeks) |
+| **Content** | Architectural decisions, conventions | Requirements, design, tasks |
+| **Examples** | "Use GraphQL for all APIs" | "Implement user authentication" |
+| **Files** | `product.md`, `tech.md`, `structure.md` | `requirements.md`, `design.md`, `tasks.md` |
 
-## 参考リポジトリ
-- `references/cqrs-es-example-js`：基本的な CQRS/ES 実装例。  
-- `references/event-store-adapter-js`：イベントストアのアダプタ実装例。  
+### Best Practices
 
-必要に応じて各リファレンスを参照しながら、本テンプレートに合わせてアプリケーションを設計してください。大規模な設計変更や初期立ち上げは GitHub Spec Kit、既存機能の改修やバグ修正は OpenSpec で扱うことで、スコープのブレとコンテキスト不足を防ぎます。
+1. **Steering Setup**: Initialize steering documents before starting features
+2. **Human Review**: Review each phase (requirements → design → tasks) before proceeding
+3. **Use `-y` Sparingly**: Auto-approval (`-y`) bypasses review gates—use only for simple updates
+4. **Keep Steering Current**: Update steering documents as architectural decisions evolve
+5. **Gap Analysis**: Run `/kiro:validate-gap` when adding features to existing codebase
+6. **Design Validation**: Use `/kiro:validate-design` for critical or complex features
 
-## ライセンス
-このテンプレートは ISC ライセンスの下で提供されます。詳細は `package.json` を参照してください。
+---
+
+## Project Structure
+
+```
+cqrs-es-spec-kit-js/
+├── .kiro/                        # Kiro workflow configuration
+│   ├── steering/                # Project-wide architectural decisions
+│   │   ├── product.md          # Product vision and domain
+│   │   ├── tech.md             # Technology stack and standards
+│   │   └── structure.md        # Code organization patterns
+│   ├── specs/                   # Feature specifications (generated)
+│   │   └── {feature-name}/
+│   │       ├── requirements.md
+│   │       ├── design.md
+│   │       └── tasks.md
+│   └── settings/                # Workflow templates and rules
+│       ├── rules/               # AI behavior rules
+│       └── templates/           # Document templates
+│
+├── references/                   # Reference implementations (submodules)
+│   ├── event-store-adapter-js/ # Event Store library
+│   └── cqrs-es-example-js/     # Production example
+│
+├── packages/                     # Your application code (to be created)
+│   ├── command/                 # Write side
+│   ├── query/                   # Read side
+│   ├── rmu/                     # Read Model Updater
+│   └── infrastructure/          # Shared infrastructure
+│
+├── scripts/                      # Development and deployment scripts
+├── AGENTS.md                    # AI agent instructions
+├── CLAUDE.md                    # Claude Code configuration
+├── GEMINI.md                    # Gemini configuration
+└── package.json
+```
+
+---
+
+## Reference Implementations
+
+### Event Store Adapter
+
+The foundation library for event persistence and retrieval:
+
+- **Repository**: [event-store-adapter-js](https://github.com/j5ik2o/event-store-adapter-js)
+- **Backend**: DynamoDB with optimistic locking
+- **Features**: Event persistence, snapshot management, stream queries
+- **Installation**: `npm install event-store-adapter-js`
+- **Usage**: Add to your `package.json` dependencies for runtime use
+
+### CQRS/ES Example
+
+A complete working implementation demonstrating all patterns:
+
+- **Repository**: [cqrs-es-example-js](https://github.com/j5ik2o/cqrs-es-example-js)
+- **Features**:
+  - Write API (GraphQL mutations)
+  - Read API (GraphQL queries)
+  - Read Model Updater (local and AWS Lambda)
+  - Docker Compose setup
+- **Use Case**: Reference implementation for AI tools to read and learn patterns
+
+### Reference Directory (`references/`)
+
+**Important**: The `references/` directory contains submodules for **AI code reading only**. These are not runtime dependencies.
+
+- **Purpose**: Provide AI tools (Claude Code, Gemini, Codex) with concrete implementation examples
+- **Location**: Included as Git submodules
+- **Usage**: AI tools analyze these for patterns; you add actual npm packages to `package.json`
+
+```bash
+# Update reference code for latest patterns
+git submodule update --remote
+
+# Explore the example (for learning, not as a dependency)
+cd references/cqrs-es-example-js
+npm install
+docker-compose up -d
+npm run build
+npm test
+
+# Your actual project dependencies go in package.json
+npm install event-store-adapter-js  # Runtime dependency
+```
+
+---
+
+## Development Guidelines
+
+### Domain Modeling
+
+1. **Aggregates**: Keep small and focused on single transaction boundaries
+2. **Value Objects**: Make immutable and validate in constructor
+3. **Domain Events**: Past-tense naming (`UserAccountCreated`, not `CreateUserAccount`)
+4. **Command Methods**: Return tuple `[newState, event]` for immutability
+
+### Event Sourcing
+
+1. **Snapshots**: Create periodically (e.g., every 10-50 events) to optimize replay
+2. **Event Versioning**: Plan for schema evolution from day one
+3. **Idempotency**: Ensure event handlers are idempotent for retry safety
+4. **Serialization**: Use explicit conversion functions for JSON ↔ domain objects
+
+### CQRS
+
+1. **Write Model**: Optimized for consistency and business logic
+2. **Read Model**: Denormalized for query performance
+3. **Eventual Consistency**: Design UI to handle propagation delays
+4. **Multiple Projections**: Create specialized read models for different use cases
+
+### GraphQL API
+
+1. **Mutations**: Map 1:1 to aggregate commands (e.g., `createUserAccount`)
+2. **Queries**: Fetch from read models only, never from event store
+3. **Type Safety**: Use TypeGraphQL decorators for schema generation
+4. **Error Handling**: Return structured errors with proper GraphQL error extensions
+
+---
+
+## AI Tool Configuration
+
+### Claude Code
+
+- **Commands**: `/kiro:*` namespace (e.g., `/kiro:spec-init`, `/kiro:spec-impl`)
+- **Configuration**: See `CLAUDE.md` for project-specific instructions
+- **Integration**: Automatic `.kiro/steering/` loading
+
+### Gemini
+
+- **Commands**: Same `/kiro:*` namespace via `GEMINI.md` configuration
+- **Prompts**: Custom prompts in `.gemini/` directory
+
+### Codex
+
+- **Commands**: Same `/kiro:*` namespace via `.codex/` directory
+- **Workflow**: Cursor-based workflow integration
+
+All AI tools share the same underlying Kiro workflow and specifications in `.kiro/`.
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+- Domain logic (aggregates, value objects)
+- Event serialization/deserialization
+- Business rule validation
+
+### Integration Tests
+- Repository operations with in-memory event store
+- GraphQL resolver behavior
+- Read model projection logic
+
+### End-to-End Tests
+- Complete command execution (mutation → event → projection → query)
+- Docker Compose environment testing
+- Event replay and snapshot recovery
+
+---
+
+## Deployment
+
+### Local Development
+```bash
+docker-compose up -d          # Start DynamoDB and PostgreSQL
+npm run build                 # Build all packages
+npm run dev                   # Start in development mode
+```
+
+### Production Considerations
+
+- **Event Store**: DynamoDB with auto-scaling
+- **Read Model**: PostgreSQL with read replicas
+- **RMU**: AWS Lambda with DynamoDB Streams trigger
+- **APIs**: Containerized GraphQL servers (ECS/EKS)
+- **Monitoring**: CloudWatch for event processing latency
+
+---
+
+## License
+
+This project is dual-licensed under:
+
+- **MIT License**: See [LICENSE-MIT](./LICENSE-MIT)
+- **Apache License 2.0**: See [LICENSE-APACHE](./LICENSE-APACHE)
+
+You may choose either license for your use of this template.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## Related Resources
+
+- [Event Store Adapter Documentation](https://github.com/j5ik2o/event-store-adapter-js)
+- [CQRS/ES Example Documentation](https://github.com/j5ik2o/cqrs-es-example-js)
+- [Domain-Driven Design Reference](https://www.domainlanguage.com/ddd/reference/)
+- [CQRS Pattern (Microsoft)](https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs)
+- [Event Sourcing Pattern](https://martinfowler.com/eaaDev/EventSourcing.html)
+
+---
+
+## Support
+
+For questions and discussions:
+
+- **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/cqrs-es-spec-kit-js/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/cqrs-es-spec-kit-js/discussions)
+
+---
+
+**Built with ❤️ for the DDD/CQRS/ES community**
