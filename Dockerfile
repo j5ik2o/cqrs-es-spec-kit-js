@@ -12,7 +12,7 @@ FROM base AS builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat zip
 WORKDIR /app
 
 COPY . /app
@@ -21,6 +21,17 @@ RUN pnpm install -g turbo
 RUN pnpm install
 RUN pnpm prisma:generate
 RUN pnpm build
+
+# Build Lambda function
+RUN cd modules/bootstrap && pnpm build:lambda
+
+# Package Lambda function
+RUN cd modules/bootstrap && \
+    mkdir -p dist/lambda/package/node_modules && \
+    cp dist/lambda/index.js dist/lambda/package/ && \
+    cp -rL node_modules/@prisma dist/lambda/package/node_modules/ && \
+    cd dist/lambda/package && \
+    zip -r ../function.zip . -q
 
 FROM base AS runner
 WORKDIR /app/modules/bootstrap
@@ -68,6 +79,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/modules/query/interface-adaptor/p
 COPY --from=builder --chown=nodejs:nodejs /app/modules/infrastructure/node_modules /app/modules/infrastructure/node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/modules/infrastructure/dist /app/modules/infrastructure/dist
 COPY --from=builder --chown=nodejs:nodejs /app/modules/infrastructure/package.json /app/modules/infrastructure/package.json
+
+# Copy Lambda function zip for LocalStack deployment
+COPY --from=builder --chown=nodejs:nodejs /app/modules/bootstrap/dist/lambda /app/modules/bootstrap/dist/lambda
 
 # Regenerate Prisma client in runner stage to fix paths
 RUN cd /app/modules/rmu && pnpm prisma generate
