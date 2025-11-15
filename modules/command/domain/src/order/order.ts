@@ -220,16 +220,17 @@ class Order implements Aggregate<Order, OrderId> {
 
 // biome-ignore lint/suspicious/noExplicitAny:
 function convertJSONToOrder(json: any): Order {
-  const id = convertJSONToOrderId(json.id);
-  const name = convertJSONToOrderName(json.name);
-  const items = convertJSONToOrderItems(json.items);
+  const data = json.data ?? json;
+  const id = convertJSONToOrderId(data.id);
+  const name = convertJSONToOrderName(data.name);
+  const items = convertJSONToOrderItems(data.items);
   return Order.of({
     id,
-    deleted: json.deleted,
+    deleted: data.deleted,
     name,
     items,
-    sequenceNumber: json.sequenceNumber,
-    version: json.version,
+    sequenceNumber: data.sequenceNumber,
+    version: data.version,
   });
 }
 
