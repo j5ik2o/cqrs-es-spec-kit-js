@@ -3,6 +3,11 @@ import { type ILogObj, Logger } from "tslog";
 import { Arg, Ctx, Query, Resolver } from "type-graphql";
 import { OrderItemQueryOutput, OrderQueryOutput } from "./outputs";
 
+type OrderItemRow = Omit<OrderItemQueryOutput, "quantity" | "price"> & {
+  quantity: number | string | bigint;
+  price: number | string | bigint;
+};
+
 interface QueryContext {
   prisma: PrismaClient;
 }
@@ -61,8 +66,8 @@ class OrderQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("orderItemId") orderItemId: string,
   ): Promise<OrderItemQueryOutput> {
-    const items: OrderItemQueryOutput[] = await prisma.$queryRaw<
-      OrderItemQueryOutput[]
+    const items: OrderItemRow[] = await prisma.$queryRaw<
+      OrderItemRow[]
     >`
         SELECT
             oi.id as id,
@@ -80,7 +85,7 @@ class OrderQueryResolver {
       throw new Error("Order item not found");
     }
     this.logger.debug("orderItem:", items[0]);
-    return items[0];
+    return this.normalizeOrderItem(items[0]);
   }
 
   @Query(() => [OrderItemQueryOutput])
@@ -88,8 +93,8 @@ class OrderQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("orderId") orderId: string,
   ): Promise<OrderItemQueryOutput[]> {
-    const items: OrderItemQueryOutput[] = await prisma.$queryRaw<
-      OrderItemQueryOutput[]
+    const items: OrderItemRow[] = await prisma.$queryRaw<
+      OrderItemRow[]
     >`
         SELECT
             oi.id as id,
@@ -104,7 +109,15 @@ class OrderQueryResolver {
         WHERE
             o.deleted = false AND oi.order_id = ${orderId}`;
     this.logger.debug("orderItems:", items);
-    return items;
+    return items.map((item) => this.normalizeOrderItem(item));
+  }
+
+  private normalizeOrderItem(item: OrderItemRow): OrderItemQueryOutput {
+    return {
+      ...item,
+      quantity: Number(item.quantity),
+      price: Number(item.price),
+    };
   }
 }
 
