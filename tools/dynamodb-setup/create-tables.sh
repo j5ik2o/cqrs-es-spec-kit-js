@@ -40,62 +40,96 @@ if [ "${ENV_NAME}" = "dev" ]; then
   ENDPOINT_URL_OPTION=" --endpoint-url http://${DYNAMODB_ENDPOINT} "
 fi
 
-aws dynamodb create-table \
-  ${ENDPOINT_URL_OPTION} \
-  --table-name "${JOURNAL_TABLE_NAME}" \
-  --attribute-definitions \
-    AttributeName=pkey,AttributeType=S \
-    AttributeName=skey,AttributeType=S \
-    AttributeName=aid,AttributeType=S \
-    AttributeName=seq_nr,AttributeType=N \
-  --key-schema \
-    AttributeName=pkey,KeyType=HASH \
-    AttributeName=skey,KeyType=RANGE \
-  --provisioned-throughput \
-    ReadCapacityUnits=10,WriteCapacityUnits=10 \
-  --global-secondary-indexes \
-  "[
-    {
-      \"IndexName\": \"${JOURNAL_GSI_NAME}\",
-      \"KeySchema\": [{\"AttributeName\":\"aid\",\"KeyType\":\"HASH\"},
-                      {\"AttributeName\":\"seq_nr\",\"KeyType\":\"RANGE\"}],
-      \"Projection\":{
-        \"ProjectionType\":\"ALL\"
-      },
-      \"ProvisionedThroughput\": {
-        \"ReadCapacityUnits\": 10,
-        \"WriteCapacityUnits\": 10
-      }
-    }
-  ]" \
-  --stream-specification StreamEnabled=true,StreamViewType=NEW_IMAGE
+table_exists() {
+  TABLE_NAME=$1
+  # shellcheck disable=SC2086
+  DESCRIBE_OUTPUT=$(aws dynamodb describe-table ${ENDPOINT_URL_OPTION} --table-name "${TABLE_NAME}" 2>&1)
+  STATUS=$?
+  if [ ${STATUS} -eq 0 ]; then
+    return 0
+  fi
 
-# shellcheck disable=SC2086
-aws dynamodb create-table \
-  ${ENDPOINT_URL_OPTION} \
-  --table-name "${SNAPSHOT_TABLE_NAME}" \
-  --attribute-definitions \
-    AttributeName=pkey,AttributeType=S \
-    AttributeName=skey,AttributeType=S \
-    AttributeName=aid,AttributeType=S \
-    AttributeName=seq_nr,AttributeType=N \
-  --key-schema \
-    AttributeName=pkey,KeyType=HASH \
-    AttributeName=skey,KeyType=RANGE \
-  --provisioned-throughput \
-    ReadCapacityUnits=10,WriteCapacityUnits=10 \
-  --global-secondary-indexes \
-  "[
-    {
-      \"IndexName\": \"${SNAPSHOT_GSI_NAME}\",
-      \"KeySchema\": [{\"AttributeName\":\"aid\",\"KeyType\":\"HASH\"},
-                      {\"AttributeName\":\"seq_nr\",\"KeyType\":\"RANGE\"}],
-      \"Projection\":{
-        \"ProjectionType\":\"ALL\"
-      },
-      \"ProvisionedThroughput\": {
-        \"ReadCapacityUnits\": 10,
-        \"WriteCapacityUnits\": 10
+  echo "${DESCRIBE_OUTPUT}" | grep -q "ResourceNotFoundException"
+  if [ $? -eq 0 ]; then
+    return 1
+  fi
+
+  echo "Failed to describe table ${TABLE_NAME}: ${DESCRIBE_OUTPUT}" >&2
+  exit 1
+}
+
+if table_exists "${JOURNAL_TABLE_NAME}"; then
+  echo "Table ${JOURNAL_TABLE_NAME} already exists. Skipping creation."
+else
+  echo "Creating table ${JOURNAL_TABLE_NAME}..."
+  aws dynamodb create-table \
+    ${ENDPOINT_URL_OPTION} \
+    --table-name "${JOURNAL_TABLE_NAME}" \
+    --attribute-definitions \
+      AttributeName=pkey,AttributeType=S \
+      AttributeName=skey,AttributeType=S \
+      AttributeName=aid,AttributeType=S \
+      AttributeName=seq_nr,AttributeType=N \
+    --key-schema \
+      AttributeName=pkey,KeyType=HASH \
+      AttributeName=skey,KeyType=RANGE \
+    --provisioned-throughput \
+      ReadCapacityUnits=10,WriteCapacityUnits=10 \
+    --global-secondary-indexes \
+    "[
+      {
+        \"IndexName\": \"${JOURNAL_GSI_NAME}\",
+        \"KeySchema\": [{\"AttributeName\":\"aid\",\"KeyType\":\"HASH\"},
+                        {\"AttributeName\":\"seq_nr\",\"KeyType\":\"RANGE\"}],
+        \"Projection\":{
+          \"ProjectionType\":\"ALL\"
+        },
+        \"ProvisionedThroughput\": {
+          \"ReadCapacityUnits\": 10,
+          \"WriteCapacityUnits\": 10
+        }
       }
+    ]" \
+    --stream-specification StreamEnabled=true,StreamViewType=NEW_IMAGE || {
+      echo "Failed to create table ${JOURNAL_TABLE_NAME}" >&2
+      exit 1
     }
-  ]"
+fi
+
+if table_exists "${SNAPSHOT_TABLE_NAME}"; then
+  echo "Table ${SNAPSHOT_TABLE_NAME} already exists. Skipping creation."
+else
+  echo "Creating table ${SNAPSHOT_TABLE_NAME}..."
+  # shellcheck disable=SC2086
+  aws dynamodb create-table \
+    ${ENDPOINT_URL_OPTION} \
+    --table-name "${SNAPSHOT_TABLE_NAME}" \
+    --attribute-definitions \
+      AttributeName=pkey,AttributeType=S \
+      AttributeName=skey,AttributeType=S \
+      AttributeName=aid,AttributeType=S \
+      AttributeName=seq_nr,AttributeType=N \
+    --key-schema \
+      AttributeName=pkey,KeyType=HASH \
+      AttributeName=skey,KeyType=RANGE \
+    --provisioned-throughput \
+      ReadCapacityUnits=10,WriteCapacityUnits=10 \
+    --global-secondary-indexes \
+    "[
+      {
+        \"IndexName\": \"${SNAPSHOT_GSI_NAME}\",
+        \"KeySchema\": [{\"AttributeName\":\"aid\",\"KeyType\":\"HASH\"},
+                        {\"AttributeName\":\"seq_nr\",\"KeyType\":\"RANGE\"}],
+        \"Projection\":{
+          \"ProjectionType\":\"ALL\"
+        },
+        \"ProvisionedThroughput\": {
+          \"ReadCapacityUnits\": 10,
+          \"WriteCapacityUnits\": 10
+        }
+      }
+    ]" || {
+      echo "Failed to create table ${SNAPSHOT_TABLE_NAME}" >&2
+      exit 1
+    }
+fi
