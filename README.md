@@ -188,6 +188,46 @@ modules/
    ./tools/e2e-test/verify-order.sh
    ```
 
+### Available pnpm Scripts
+
+The project provides convenient pnpm scripts for common development tasks:
+
+#### Docker Development Environment
+```bash
+pnpm docker-build     # Build Docker image
+pnpm docker-up        # Start all services
+pnpm docker-down      # Stop all services
+pnpm docker-logs      # View service logs
+```
+
+#### AI Development Tools
+```bash
+pnpm claude           # Launch Claude Code
+pnpm gemini           # Launch Gemini
+pnpm codex            # Launch Codex
+```
+
+#### Testing
+```bash
+pnpm verify-order     # Run E2E tests for Order domain
+pnpm test             # Run unit tests
+```
+
+#### Build & Quality
+```bash
+pnpm build            # Build all packages
+pnpm lint             # Run linter
+pnpm lint:fix         # Auto-fix linting issues
+pnpm format           # Check code formatting
+pnpm format:fix       # Auto-format code
+pnpm clean            # Remove build artifacts
+```
+
+#### Database
+```bash
+pnpm prisma:generate  # Generate Prisma Client
+```
+
 ### GraphQL API Examples
 
 **Create Order**:

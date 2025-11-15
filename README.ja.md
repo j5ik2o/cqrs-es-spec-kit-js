@@ -90,6 +90,48 @@
 
 ---
 
+## 利用可能な pnpm スクリプト
+
+プロジェクトでは、一般的な開発タスクのための便利な pnpm スクリプトを提供しています：
+
+### Docker 開発環境
+```bash
+pnpm docker-build     # Docker イメージをビルド
+pnpm docker-up        # 全サービスを起動
+pnpm docker-down      # 全サービスを停止
+pnpm docker-logs      # サービスログを表示
+```
+
+### AI 開発ツール
+```bash
+pnpm claude           # Claude Code を起動
+pnpm gemini           # Gemini を起動
+pnpm codex            # Codex を起動
+```
+
+### テスト
+```bash
+pnpm verify-order     # Order ドメインの E2E テストを実行
+pnpm test             # ユニットテストを実行
+```
+
+### ビルド・品質
+```bash
+pnpm build            # 全パッケージをビルド
+pnpm lint             # Lint を実行
+pnpm lint:fix         # Lint の問題を自動修正
+pnpm format           # コードフォーマットをチェック
+pnpm format:fix       # コードを自動フォーマット
+pnpm clean            # ビルド成果物を削除
+```
+
+### データベース
+```bash
+pnpm prisma:generate  # Prisma Client を生成
+```
+
+---
+
 ## アーキテクチャ
 
 ### システムコンポーネント
