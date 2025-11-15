@@ -127,9 +127,45 @@ modules/
 
 ### Running the Example
 
+#### Option 1: Using Docker (Recommended)
+
+1. **Build Docker image**:
+   ```bash
+   ./tools/scripts/docker-build.sh
+   ```
+
+2. **Start all services**:
+   ```bash
+   ./tools/scripts/docker-up.sh
+   ```
+
+3. **Run E2E tests**:
+   ```bash
+   ./tools/e2e-test/verify-order.sh
+   ```
+
+4. **View logs**:
+   ```bash
+   ./tools/scripts/docker-logs.sh
+   ```
+
+5. **Stop all services**:
+   ```bash
+   ./tools/scripts/docker-down.sh
+   ```
+
+**Services Available**:
+- Write API: http://localhost:38080
+- Read API: http://localhost:38082
+- Read Model Updater: http://localhost:38081
+- DynamoDB Admin: http://localhost:38003
+- phpMyAdmin: http://localhost:24040
+
+#### Option 2: Running Locally
+
 1. **Start infrastructure**:
    ```bash
-   docker-compose up -d  # DynamoDB, PostgreSQL, LocalStack
+   docker-compose up -d mysql localstack dynamodb-setup dynamodb-admin phpmyadmin migration
    ```
 
 2. **Build and start servers**:

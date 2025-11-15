@@ -52,8 +52,8 @@ catalogs:
       specifier: ^2.1459.0
       version: 2.1692.0
     event-store-adapter-js:
-      specifier: 2.2.147
-      version: 2.2.147
+      specifier: 2.2.163-snapshot.8
+      version: 2.2.163-snapshot.8
     fp-ts:
       specifier: ^2.16.2
       version: 2.16.11
@@ -157,7 +157,7 @@ importers:
         version: link:../rmu
       event-store-adapter-js:
         specifier: 'catalog:'
-        version: 2.2.147
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -221,7 +221,7 @@ importers:
         version: link:../../infrastructure
       event-store-adapter-js:
         specifier: 'catalog:'
-        version: 2.2.147
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -279,7 +279,7 @@ importers:
         version: link:../domain
       event-store-adapter-js:
         specifier: 'catalog:'
-        version: 2.2.147
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -343,7 +343,7 @@ importers:
         version: link:../processor
       event-store-adapter-js:
         specifier: 'catalog:'
-        version: 2.2.147
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -416,7 +416,7 @@ importers:
         version: link:../interface-adaptor-if
       event-store-adapter-js:
         specifier: 'catalog:'
-        version: 2.2.147
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -528,8 +528,8 @@ importers:
         specifier: 'catalog:'
         version: 2.1692.0
       event-store-adapter-js:
-        specifier: 2.2.160
-        version: 2.2.160
+        specifier: 'catalog:'
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -616,8 +616,8 @@ importers:
         specifier: workspace:*
         version: link:../command/domain
       event-store-adapter-js:
-        specifier: 2.2.160
-        version: 2.2.160
+        specifier: 'catalog:'
+        version: 2.2.163-snapshot.8
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.11
@@ -2446,11 +2446,8 @@ packages:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
 
-  event-store-adapter-js@2.2.147:
-    resolution: {integrity: sha512-KlsulVMQmlajbtCOQ0RhFOuGfBgLUwoic8KrnMs0b0hegEerWglrY0yVEM4q2HiYekb4BQMOaaBaodGaEg1HKA==}
-
-  event-store-adapter-js@2.2.160:
-    resolution: {integrity: sha512-RcCrpHt0B7KtrakFKvnMUmGubxGsVEnGltz8XgNWxJpQ9M+C2uzi5inGxQgZ+OBh6bEo2mbI2PZCXVuYUpAdaA==}
+  event-store-adapter-js@2.2.163-snapshot.8:
+    resolution: {integrity: sha512-MhxlZOk2O1c7UURY5uMHHQN5fOsCuwvSBZOwUf3Qg49OI4qXMscbqQF3fsF2Ztp2gZ0Yl4lDSppPWXSWtgCIGg==}
 
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
@@ -3915,10 +3912,6 @@ packages:
   uglify-js@3.19.3:
     resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
     engines: {node: '>=0.8.0'}
-    hasBin: true
-
-  ulid@2.4.0:
-    resolution: {integrity: sha512-fIRiVTJNcSRmXKPZtGzFQv9WRrZ3M9eoptl/teFJvjOzmpU+/K/JH6HZ8deBfb5vMEpicJcLn7JmvdknlMq7Zg==}
     hasBin: true
 
   ulid@3.0.1:
@@ -6535,17 +6528,7 @@ snapshots:
 
   etag@1.8.1: {}
 
-  event-store-adapter-js@2.2.147:
-    dependencies:
-      '@aws-sdk/client-dynamodb': 3.931.0
-      aws-sdk: 2.1692.0
-      moment: 2.30.1
-      ulid: 2.4.0
-      winston: 3.18.3
-    transitivePeerDependencies:
-      - aws-crt
-
-  event-store-adapter-js@2.2.160:
+  event-store-adapter-js@2.2.163-snapshot.8:
     dependencies:
       '@aws-sdk/client-dynamodb': 3.931.0
       aws-sdk: 2.1692.0
@@ -8222,8 +8205,6 @@ snapshots:
 
   uglify-js@3.19.3:
     optional: true
-
-  ulid@2.4.0: {}
 
   ulid@3.0.1: {}
 

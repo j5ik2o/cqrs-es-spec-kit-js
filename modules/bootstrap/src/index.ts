@@ -29,4 +29,4 @@ async function main() {
   }
 }
 
-main().catch(logger.error);
+main().catch((error) => logger.error(error));

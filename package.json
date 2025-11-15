@@ -20,7 +20,7 @@
     "format": "turbo format",
     "format:fix": "turbo format:fix",
     "clean": "turbo clean",
-    "prisma:generate": "pnpm --filter \"cqrs-es-example-js-rmu\" --filter \"cqrs-es-example-js-query-interface-adaptor\" prisma:generate"
+    "prisma:generate": "pnpm --filter \"cqrs-es-spec-kit-js-rmu\" --filter \"cqrs-es-spec-kit-js-query-interface-adaptor\" prisma:generate"
   },
   "keywords": [],
   "author": "Junichi Kato <j5ik2o@gmail.com> (https://j5ik2o.me/)",

@@ -2,7 +2,7 @@
   "name": "cqrs-es-spec-kit-js-rmu",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "prisma:generate": "prisma generate",
     "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/*.test.*",
@@ -38,7 +38,7 @@
     "aws-lambda": "catalog:",
     "aws-sdk": "catalog:",
     "cqrs-es-spec-kit-js-command-domain": "workspace:*",
-    "event-store-adapter-js": "2.2.160",
+    "event-store-adapter-js": "catalog:",
     "fp-ts": "catalog:",
     "moment": "catalog:",
     "tslog": "catalog:"

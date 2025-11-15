@@ -19,7 +19,7 @@ import type { TaskEither } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
 import { GraphQLError } from "graphql/error";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import type {
+import {
   AddItemInput,
   CreateOrderInput,
   DeleteOrderInput,
@@ -41,7 +41,7 @@ class OrderCommandResolver {
   @Mutation(() => OrderOutput)
   async createOrder(
     @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input") input: CreateOrderInput,
+    @Arg("input", () => CreateOrderInput) input: CreateOrderInput,
   ): Promise<OrderOutput> {
     return pipe(
       this.validateOrderName(input.name),
@@ -68,7 +68,7 @@ class OrderCommandResolver {
   @Mutation(() => OrderItemOutput)
   async addItem(
     @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input") input: AddItemInput,
+    @Arg("input", () => AddItemInput) input: AddItemInput,
   ): Promise<OrderItemOutput> {
     return pipe(
       this.validateOrderId(input.orderId),
@@ -117,7 +117,7 @@ class OrderCommandResolver {
   @Mutation(() => OrderOutput)
   async removeItem(
     @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input") input: RemoveItemInput,
+    @Arg("input", () => RemoveItemInput) input: RemoveItemInput,
   ): Promise<OrderOutput> {
     return pipe(
       this.validateOrderId(input.orderId),
@@ -158,7 +158,7 @@ class OrderCommandResolver {
   @Mutation(() => OrderOutput)
   async deleteOrder(
     @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input") input: DeleteOrderInput,
+    @Arg("input", () => DeleteOrderInput) input: DeleteOrderInput,
   ): Promise<OrderOutput> {
     return pipe(
       this.validateOrderId(input.orderId),

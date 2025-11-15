@@ -2,7 +2,7 @@
   "name": "cqrs-es-spec-kit-js-infrastructure",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
     "start-write-api": "node dist/index.js writeApi",

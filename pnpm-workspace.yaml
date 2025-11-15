@@ -10,7 +10,7 @@ catalog:
   fp-ts: ^2.16.2
   ulidx: ^2.3.0
   tslog: ^4.9.2
-  event-store-adapter-js: 2.2.147
+  event-store-adapter-js: 2.2.163-snapshot.8
   moment: ^2.29.4
   '@aws-sdk/client-dynamodb': ^3.413.0
   '@aws-sdk/client-dynamodb-streams': ^3.413.0

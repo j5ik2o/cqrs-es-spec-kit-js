@@ -2,7 +2,7 @@
   "name": "cqrs-es-spec-kit-js-query-interface-adaptor",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "prisma:generate": "prisma generate",
     "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/*.test.*",
@@ -37,7 +37,7 @@
     "@prisma/client": "catalog:",
     "@types/graphql-fields": "catalog:",
     "aws-sdk": "catalog:",
-    "event-store-adapter-js": "2.2.160",
+    "event-store-adapter-js": "catalog:",
     "fp-ts": "catalog:",
     "graphql": "catalog:",
     "graphql-fields": "catalog:",

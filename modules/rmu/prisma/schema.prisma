@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Orders {
+  id        String       @id @db.VarChar(64)
+  deleted   Boolean
+  name      String       @db.VarChar(200)
+  createdAt DateTime     @db.DateTime(0) @map("created_at")
+  updatedAt DateTime     @db.DateTime(0) @map("updated_at")
+  items     OrderItems[]
+
+  @@map("orders")
+}
+
+model OrderItems {
+  id        String   @id @db.VarChar(64)
+  orderId   String   @db.VarChar(64) @map("order_id")
+  name      String   @db.VarChar(200)
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @db.DateTime(0) @map("created_at")
+  updatedAt DateTime @db.DateTime(0) @map("updated_at")
+  orders    Orders   @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_items_ibfk_1")
+
+  @@index([orderId], map: "order_id")
+  @@map("order_items")
+}

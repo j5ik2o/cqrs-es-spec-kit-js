@@ -2,7 +2,7 @@
   "name": "cqrs-es-spec-kit-js-command-processor",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc && rimraf dist/internal/*.test.d.ts && rimraf dist/internal/*.test.js && rimraf dist/internal/test && rimraf dist/group-chat/*.test.*",
     "test": "jest --no-cache",
