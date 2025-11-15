@@ -131,12 +131,12 @@ modules/
 
 1. **Build Docker image**:
    ```bash
-   ./tools/scripts/docker-build.sh
+   ./tools/docker/docker-build.sh
    ```
 
 2. **Start all services**:
    ```bash
-   ./tools/scripts/docker-up.sh
+   ./tools/docker/docker-up.sh
    ```
 
 3. **Run E2E tests**:
@@ -146,12 +146,12 @@ modules/
 
 4. **View logs**:
    ```bash
-   ./tools/scripts/docker-logs.sh
+   ./tools/docker/docker-logs.sh
    ```
 
 5. **Stop all services**:
    ```bash
-   ./tools/scripts/docker-down.sh
+   ./tools/docker/docker-down.sh
    ```
 
 **Services Available**:
