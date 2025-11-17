@@ -21,6 +21,8 @@ A comprehensive template repository that combines Domain-Driven Design (DDD), CQ
 
 This template is designed for **developers who understand DDD/CQRS/ES fundamentals** and are seeking proven implementation patterns and AI-assisted development workflows.
 
+It provides a foundation that allows domain events, commands, aggregates, and query models derived from Event Storming domain analysis to be naturally implemented through CQRS/Event Sourcing architecture. This maintains consistency between analysis and implementation, which is difficult to achieve with traditional CRUD-based approaches.
+
 ---
 
 ## Features
