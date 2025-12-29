@@ -61,8 +61,8 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 1. **Use this template**:
    ```bash
    # Click "Use this template" on GitHub, or clone directly:
-   git clone --recursive https://github.com/YOUR_USERNAME/YOUR_PROJECT.git
-   cd YOUR_PROJECT
+   git clone --recursive https://github.com/j5ik2o/cqrs-es-spec-kit-js.git
+   cd cqrs-es-spec-kit-js
    ```
 
 2. **Initialize submodules** (reference implementations):

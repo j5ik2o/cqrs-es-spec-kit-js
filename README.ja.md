@@ -61,8 +61,8 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 1. **このテンプレートを使用**:
    ```bash
    # GitHub で "Use this template" をクリック、または直接クローン:
-   git clone --recursive https://github.com/YOUR_USERNAME/YOUR_PROJECT.git
-   cd YOUR_PROJECT
+   git clone --recursive https://github.com/j5ik2o/cqrs-es-spec-kit-js.git
+   cd cqrs-es-spec-kit-js
    ```
 
 2. **サブモジュールの初期化** (参照実装):
