@@ -51,10 +51,33 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 ### Prerequisites
 
-- Node.js 18+ (LTS recommended)
-- Docker & Docker Compose (for local infrastructure)
-- AI Coding Tool: Claude Code, Gemini, or Codex
+#### Required Tools
+
+| Tool | Version | Description |
+|------|---------|-------------|
+| **Node.js** | v20.5.0+ | JavaScript runtime (LTS recommended) |
+| **pnpm** | v8+ | Package manager (project uses v10.22.0) |
+| **Docker** | Latest | Container runtime |
+| **Docker Compose** | v2+ | Container orchestration |
+| **Git** | Latest | Version control (for submodules) |
+
+#### For E2E Testing
+
+| Tool | Description |
+|------|-------------|
+| **curl** | HTTP client for API testing |
+| **jq** | JSON processor for parsing responses |
+
+#### Optional
+
+| Tool | Description |
+|------|-------------|
+| **AWS CLI** | For direct LocalStack interaction |
+
+#### Knowledge Prerequisites
+
 - Basic understanding of DDD, CQRS/ES, and GraphQL
+- AI Coding Tool: Claude Code, Gemini, or Codex
 
 ### Installation
 
