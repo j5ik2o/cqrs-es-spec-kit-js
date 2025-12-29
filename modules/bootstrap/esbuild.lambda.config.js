@@ -7,7 +7,7 @@ const build = async () => {
       entryPoints: ["./src/lambda-rmu-handler.ts"],
       bundle: true,
       platform: "node",
-      target: "node20",
+      target: "node18",
       outfile: "./dist/lambda/index.js",
       external: [
         // Prisma Clientは個別にコピーするため除外

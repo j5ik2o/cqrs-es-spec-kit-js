@@ -11,14 +11,14 @@ echo "Waiting for services to be ready..."
 sleep 10
 
 echo "Starting application services..."
-docker-compose up -d write-api-server read-model-updater read-api-server
+docker-compose up -d write-api-server lambda-setup read-api-server
 
 echo "All services started!"
 echo ""
 echo "Services available at:"
 echo "  - Write API:        http://localhost:38080"
 echo "  - Read API:         http://localhost:38082"
-echo "  - Read Model Updater: http://localhost:38081"
+echo "  - Lambda RMU:       (runs as LocalStack Lambda)"
 echo "  - DynamoDB Admin:   http://localhost:38003"
 echo "  - phpMyAdmin:       http://localhost:24040"
 echo ""

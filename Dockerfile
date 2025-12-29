@@ -25,13 +25,33 @@ RUN pnpm build
 # Build Lambda function
 RUN cd modules/bootstrap && pnpm build:lambda
 
-# Package Lambda function
+# Package Lambda function with proper Prisma client (optimized for size)
 RUN cd modules/bootstrap && \
-    mkdir -p dist/lambda/package/node_modules && \
+    mkdir -p dist/lambda/package/node_modules/@prisma && \
+    mkdir -p dist/lambda/package/node_modules/.prisma && \
     cp dist/lambda/index.js dist/lambda/package/ && \
-    cp -rL node_modules/@prisma dist/lambda/package/node_modules/ && \
+    # Find the actual Prisma client location in pnpm hoisted modules
+    PRISMA_HOISTED=$(find /app/node_modules/.pnpm -name "@prisma+client*" -type d | head -1) && \
+    echo "Prisma hoisted location: $PRISMA_HOISTED" && \
+    cp -rL "$PRISMA_HOISTED/node_modules/@prisma/client" dist/lambda/package/node_modules/@prisma/ && \
+    # Copy .prisma/client with generated files
+    PRISMA_INTERNAL=$(find /app/node_modules/.pnpm -path "*/.prisma/client" -type d | head -1) && \
+    echo "Prisma internal location: $PRISMA_INTERNAL" && \
+    cp -rL "$PRISMA_INTERNAL" dist/lambda/package/node_modules/.prisma/ && \
+    # Remove unnecessary Prisma binaries to reduce package size (keep only rhel-openssl-1.0.x for Lambda)
+    echo "Removing unnecessary Prisma binaries..." && \
+    find dist/lambda/package -name "libquery_engine-*" ! -name "*rhel-openssl-1.0.x*" -delete && \
+    find dist/lambda/package -name "schema-engine-*" -delete && \
+    find dist/lambda/package -name "introspection-engine-*" -delete && \
+    find dist/lambda/package -name "migration-engine-*" -delete && \
+    find dist/lambda/package -name "prisma-fmt-*" -delete && \
+    find dist/lambda/package -name "*.node" ! -name "*rhel*" -delete 2>/dev/null || true && \
+    # List remaining binaries for verification
+    echo "Remaining Prisma binaries:" && \
+    find dist/lambda/package -name "libquery_engine-*" -o -name "*.node" 2>/dev/null | head -10 && \
     cd dist/lambda/package && \
-    zip -r ../function.zip . -q
+    zip -r ../function.zip . -q && \
+    echo "Package size:" && du -h ../function.zip
 
 FROM base AS runner
 WORKDIR /app/modules/bootstrap

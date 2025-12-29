@@ -90,7 +90,9 @@ echo "Result: $ADD_ITEM_2_RESULT"
 
 ITEM_ID_2=$(echo $ADD_ITEM_2_RESULT | jq -r .data.addItem.itemId)
 
-sleep 1
+# Wait for Lambda to process DynamoDB Stream events
+echo -e "\nWaiting for read model to be updated by Lambda..."
+sleep 5
 
 # Order取得
 echo -e "\nGet Order(${ORDER_ID}):"
@@ -181,7 +183,9 @@ fi
 
 echo "Result: $REMOVE_ITEM_RESULT"
 
-sleep 1
+# Wait for Lambda to process DynamoDB Stream events
+echo -e "\nWaiting for read model to be updated by Lambda..."
+sleep 5
 
 # OrderItemリスト再取得（1つ減っているはず）
 echo -e "\nGet OrderItems After Removal(${ORDER_ID}):"
@@ -223,7 +227,9 @@ fi
 
 echo "Result: $DELETE_ORDER_RESULT"
 
-sleep 1
+# Wait for Lambda to process DynamoDB Stream events
+echo -e "\nWaiting for read model to be updated by Lambda..."
+sleep 5
 
 # Order取得（deletedがtrueになっているはず）
 echo -e "\nGet Deleted Order(${ORDER_ID}):"

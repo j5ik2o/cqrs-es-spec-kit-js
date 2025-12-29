@@ -1,4 +1,3 @@
-import { TextDecoder } from "node:util";
 import type { DynamoDBStreamEvent } from "aws-lambda";
 import {
   type OrderCreated,
@@ -16,7 +15,6 @@ import type { OrderDao } from "./order-dao";
 
 class ReadModelUpdater {
   private logger: Logger<ILogObj> = new Logger();
-  private decoder: TextDecoder = new TextDecoder("utf-8");
 
   private constructor(private readonly orderDao: OrderDao) {}
 
@@ -37,8 +35,9 @@ class ReadModelUpdater {
         this.logger.warn("No payload");
         return;
       }
-      const payload = this.decoder.decode(
-        new Uint8Array(base64EncodedPayload.split(",").map(Number)),
+      // Decode base64-encoded binary payload from DynamoDB Streams
+      const payload = Buffer.from(base64EncodedPayload, "base64").toString(
+        "utf-8",
       );
       const payloadJson = JSON.parse(payload);
       const orderEvent = convertJSONToOrderEvent(payloadJson);
