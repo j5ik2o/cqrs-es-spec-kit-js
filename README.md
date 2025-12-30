@@ -51,28 +51,13 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 ### Prerequisites
 
-#### Required Tools
-
-| Tool | Version | Description |
-|------|---------|-------------|
-| **Node.js** | v20.5.0+ | JavaScript runtime (LTS recommended) |
-| **pnpm** | v8+ | Package manager (project uses v10.22.0) |
-| **Docker** | Latest | Container runtime |
-| **Docker Compose** | v2+ | Container orchestration |
-| **Git** | Latest | Version control (for submodules) |
-
-#### For E2E Testing
+#### Required
 
 | Tool | Description |
 |------|-------------|
-| **curl** | HTTP client for API testing |
-| **jq** | JSON processor for parsing responses |
-
-#### Optional
-
-| Tool | Description |
-|------|-------------|
-| **AWS CLI** | For direct LocalStack interaction |
+| **Nix** | Package manager with flakes enabled ([Install](https://nix.dev/install-nix)) |
+| **Docker** | Container runtime |
+| **Git** | Version control |
 
 #### Knowledge Prerequisites
 
@@ -81,27 +66,28 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 ### Installation
 
-1. **Use this template**:
+1. **Install Nix** (if not already installed):
    ```bash
-   # Click "Use this template" on GitHub, or clone directly:
+   # Follow instructions at https://nix.dev/install-nix
+   curl -L https://nixos.org/nix/install | sh
+
+   # Enable flakes (add to ~/.config/nix/nix.conf)
+   echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+   ```
+
+2. **Clone and enter development environment**:
+   ```bash
    git clone --recursive https://github.com/j5ik2o/cqrs-es-spec-kit-js.git
    cd cqrs-es-spec-kit-js
+
+   # Enter development environment (includes Node.js, pnpm, Docker tools, AWS CLI, jq, curl)
+   nix develop
+
+   # Install dependencies
+   pnpm install
    ```
 
-2. **Initialize submodules** (reference implementations):
-   ```bash
-   git submodule update --init --recursive
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   npm install
-
-   # Add event-store-adapter-js to your project
-   npm install event-store-adapter-js
-   ```
-
-4. **Explore reference implementations** (for AI code reading):
+3. **Explore reference implementations** (for AI code reading):
    ```bash
    # The references/ directory contains example code for AI tools to reference
    # These are NOT used as runtime dependencies
