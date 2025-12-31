@@ -59,6 +59,12 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 | **Docker** | コンテナランタイム |
 | **Git** | バージョン管理 |
 
+#### 対応OS
+
+- macOS / Linux: そのまま利用可能
+- Windows: WSL2 上で実行（Ubuntu など）し、Docker Desktop の WSL 統合を有効化すること
+- すべてのコマンドは WSL のシェルから実行する前提
+
 #### 知識の前提条件
 
 - DDD、CQRS/ES、GraphQL の基本的な理解

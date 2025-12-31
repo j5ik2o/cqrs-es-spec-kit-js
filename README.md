@@ -59,6 +59,12 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 | **Docker** | Container runtime |
 | **Git** | Version control |
 
+#### Supported OS
+
+- macOS / Linux: works as-is
+- Windows: run under WSL2 (Ubuntu, etc.) and enable Docker Desktop WSL integration
+- All commands are expected to be executed from the WSL shell
+
 #### Knowledge Prerequisites
 
 - Basic understanding of DDD, CQRS/ES, and GraphQL
