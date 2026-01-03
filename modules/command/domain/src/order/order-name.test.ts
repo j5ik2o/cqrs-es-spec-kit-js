@@ -1,5 +1,5 @@
 import * as E from "fp-ts/lib/Either";
-import { OrderName } from "../order/order-name";
+import { OrderName } from "./order-name";
 
 describe("OrderName", () => {
   it("creates and validates a name", () => {

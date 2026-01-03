@@ -29,4 +29,6 @@ async function main() {
   }
 }
 
-main().catch((error) => logger.error(error));
+if (require.main === module) {
+  main().catch((error) => logger.error(error));
+}

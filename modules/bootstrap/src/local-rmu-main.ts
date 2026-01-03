@@ -14,7 +14,11 @@ import { OrderDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
 import { logger } from "./index";
 import type { PrismaQueryEvent } from "./types";
 
-async function localRmuMain() {
+type LocalRmuOptions = {
+  maxIterations?: number;
+};
+
+async function localRmuMain(options: LocalRmuOptions = {}) {
   logger.info("Starting local read model updater");
 
   const apiHost = process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
@@ -85,7 +89,8 @@ async function localRmuMain() {
   const dao = OrderDao.of(prisma);
   const readModelUpdater = ReadModelUpdater.of(dao);
 
-  for (;;) {
+  const maxIterations = options.maxIterations ?? Number.POSITIVE_INFINITY;
+  for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     await streamDriver(
       dynamodbClient,
       dynamodbStreamsClient,

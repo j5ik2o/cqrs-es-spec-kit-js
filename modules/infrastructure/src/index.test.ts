@@ -1,4 +1,4 @@
-import { generateULID } from "../index";
+import { generateULID } from "./index";
 
 describe("generateULID", () => {
   it("returns unique, non-empty ids", () => {
