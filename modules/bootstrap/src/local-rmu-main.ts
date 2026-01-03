@@ -1,7 +1,4 @@
-import {
-  DescribeTableCommand,
-  DynamoDBClient,
-} from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DescribeStreamCommand,
   DynamoDBStreamsClient,
@@ -12,10 +9,7 @@ import {
   type _Record,
 } from "@aws-sdk/client-dynamodb-streams";
 import { PrismaClient } from "@prisma/client";
-import type {
-  DynamoDBStreamEvent,
-  AttributeValue as LambdaAttributeValue,
-} from "aws-lambda";
+import type { DynamoDBStreamEvent, AttributeValue as LambdaAttributeValue } from "aws-lambda";
 import { OrderDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
 import { logger } from "./index";
 import type { PrismaQueryEvent } from "./types";
@@ -23,12 +17,8 @@ import type { PrismaQueryEvent } from "./types";
 async function localRmuMain() {
   logger.info("Starting local read model updater");
 
-  const apiHost =
-    process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
-  const apiPort =
-    process.env.API_PORT !== undefined
-      ? Number.parseInt(process.env.API_PORT)
-      : 3000;
+  const apiHost = process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
+  const apiPort = process.env.API_PORT !== undefined ? Number.parseInt(process.env.API_PORT) : 3000;
 
   const awsRegion = process.env.AWS_REGION;
   const awsDynamodbEndpointUrl = process.env.AWS_DYNAMODB_ENDPOINT_URL;
@@ -36,13 +26,9 @@ async function localRmuMain() {
   const awsDynamodbSecretAccessKey = process.env.AWS_DYNAMODB_SECRET_ACCESS_KEY;
 
   const streamJournalTableName =
-    process.env.STREAM_JOURNAL_TABLE_NAME !== undefined
-      ? process.env.STREAM_JOURNAL_TABLE_NAME
-      : "journal";
+    process.env.STREAM_JOURNAL_TABLE_NAME !== undefined ? process.env.STREAM_JOURNAL_TABLE_NAME : "journal";
   const streamMaxItemCount =
-    process.env.STREAM_MAX_ITEM_COUNT !== undefined
-      ? Number.parseInt(process.env.STREAM_MAX_ITEM_COUNT)
-      : 100;
+    process.env.STREAM_MAX_ITEM_COUNT !== undefined ? Number.parseInt(process.env.STREAM_MAX_ITEM_COUNT) : 100;
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -61,12 +47,7 @@ async function localRmuMain() {
 
   let dynamodbClient: DynamoDBClient;
   let dynamodbStreamsClient: DynamoDBStreamsClient;
-  if (
-    awsRegion &&
-    awsDynamodbEndpointUrl &&
-    awsDynamodbAccessKeyId &&
-    awsDynamodbSecretAccessKey
-  ) {
+  if (awsRegion && awsDynamodbEndpointUrl && awsDynamodbAccessKeyId && awsDynamodbSecretAccessKey) {
     dynamodbClient = new DynamoDBClient({
       region: awsRegion,
       endpoint: awsDynamodbEndpointUrl,
@@ -128,9 +109,7 @@ async function streamDriver(
   streamMaxItemCount: number,
   readModelUpdater: ReadModelUpdater,
 ) {
-  const result = await dynamodbClient.send(
-    new DescribeTableCommand({ TableName: streamJournalTableName }),
-  );
+  const result = await dynamodbClient.send(new DescribeTableCommand({ TableName: streamJournalTableName }));
   const streamArn = result.Table?.LatestStreamArn;
   if (!streamArn) {
     throw new Error("StreamArn is not set");
@@ -145,9 +124,7 @@ async function streamDriver(
     if (lastEvaluatedShardId) {
       req = { ...req, ExclusiveStartShardId: lastEvaluatedShardId };
     }
-    const describeStream = await dynamodbStreamsClient.send(
-      new DescribeStreamCommand(req),
-    );
+    const describeStream = await dynamodbStreamsClient.send(new DescribeStreamCommand(req));
     const shards = describeStream.StreamDescription?.Shards;
     if (!shards) {
       throw new Error("Shards is not set");
@@ -166,10 +143,9 @@ async function streamDriver(
       }
       let processedRecordCount = 0;
       while (processedRecordCount < streamMaxItemCount) {
-        const getRecords: GetRecordsCommandOutput =
-          await dynamodbStreamsClient.send(
-            new GetRecordsCommand({ ShardIterator: shardIterator }),
-          );
+        const getRecords: GetRecordsCommandOutput = await dynamodbStreamsClient.send(
+          new GetRecordsCommand({ ShardIterator: shardIterator }),
+        );
         const records = getRecords.Records;
         if (!records) {
           throw new Error("Records is not set");
@@ -179,9 +155,7 @@ async function streamDriver(
           const item = getItem(record);
           logger.info(`keys = ${JSON.stringify(keys)}`);
           logger.info(`item = ${JSON.stringify(item)}`);
-          await readModelUpdater.updateReadModel(
-            convertToEvent(record, keys, item, streamArn),
-          );
+          await readModelUpdater.updateReadModel(convertToEvent(record, keys, item, streamArn));
         }
         processedRecordCount += records.length;
         shardIterator = getRecords.NextShardIterator;
@@ -190,8 +164,7 @@ async function streamDriver(
     if (describeStream.StreamDescription?.LastEvaluatedShardId === undefined) {
       break;
     }
-    lastEvaluatedShardId =
-      describeStream.StreamDescription?.LastEvaluatedShardId;
+    lastEvaluatedShardId = describeStream.StreamDescription?.LastEvaluatedShardId;
   }
 }
 
@@ -206,8 +179,7 @@ function convertToEvent(
       {
         awsRegion: record.awsRegion,
         dynamodb: {
-          ApproximateCreationDateTime:
-            record.dynamodb?.ApproximateCreationDateTime?.getTime(),
+          ApproximateCreationDateTime: record.dynamodb?.ApproximateCreationDateTime?.getTime(),
           Keys: keys,
           NewImage: item,
           SequenceNumber: record.dynamodb?.SequenceNumber,

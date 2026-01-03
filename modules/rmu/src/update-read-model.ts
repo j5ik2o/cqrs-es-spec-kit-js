@@ -36,20 +36,14 @@ class ReadModelUpdater {
         return;
       }
       // Decode base64-encoded binary payload from DynamoDB Streams
-      const payload = Buffer.from(base64EncodedPayload, "base64").toString(
-        "utf-8",
-      );
+      const payload = Buffer.from(base64EncodedPayload, "base64").toString("utf-8");
       const payloadJson = JSON.parse(payload);
       const orderEvent = convertJSONToOrderEvent(payloadJson);
       switch (orderEvent.symbol) {
         case OrderCreatedTypeSymbol: {
           const typedEvent = orderEvent as OrderCreated;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.insertOrder(
-            typedEvent.aggregateId,
-            typedEvent.name,
-            new Date(),
-          );
+          await this.orderDao.insertOrder(typedEvent.aggregateId, typedEvent.name, new Date());
           this.logger.debug("inserted order");
           break;
         }
@@ -63,11 +57,7 @@ class ReadModelUpdater {
         case OrderItemAddedTypeSymbol: {
           const typedEvent = orderEvent as OrderItemAdded;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.insertOrderItem(
-            typedEvent.aggregateId,
-            typedEvent.item,
-            new Date(),
-          );
+          await this.orderDao.insertOrderItem(typedEvent.aggregateId, typedEvent.item, new Date());
           this.logger.debug("inserted order item");
           break;
         }

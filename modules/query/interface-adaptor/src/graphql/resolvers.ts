@@ -17,13 +17,8 @@ class OrderQueryResolver {
   private readonly logger: Logger<ILogObj> = new Logger();
 
   @Query(() => OrderQueryOutput)
-  async getOrder(
-    @Ctx() { prisma }: QueryContext,
-    @Arg("orderId") orderId: string,
-  ): Promise<OrderQueryOutput> {
-    const orders: OrderQueryOutput[] = await prisma.$queryRaw<
-      OrderQueryOutput[]
-    >`
+  async getOrder(@Ctx() { prisma }: QueryContext, @Arg("orderId") orderId: string): Promise<OrderQueryOutput> {
+    const orders: OrderQueryOutput[] = await prisma.$queryRaw<OrderQueryOutput[]>`
         SELECT
             o.id as id,
             o.name as name,
@@ -44,9 +39,7 @@ class OrderQueryResolver {
 
   @Query(() => [OrderQueryOutput])
   async getOrders(@Ctx() { prisma }: QueryContext): Promise<OrderQueryOutput[]> {
-    const orders: OrderQueryOutput[] = await prisma.$queryRaw<
-      OrderQueryOutput[]
-    >`
+    const orders: OrderQueryOutput[] = await prisma.$queryRaw<OrderQueryOutput[]>`
         SELECT
             o.id as id,
             o.name as name,
@@ -66,9 +59,7 @@ class OrderQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("orderItemId") orderItemId: string,
   ): Promise<OrderItemQueryOutput> {
-    const items: OrderItemRow[] = await prisma.$queryRaw<
-      OrderItemRow[]
-    >`
+    const items: OrderItemRow[] = await prisma.$queryRaw<OrderItemRow[]>`
         SELECT
             oi.id as id,
             oi.order_id as orderId,
@@ -93,9 +84,7 @@ class OrderQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("orderId") orderId: string,
   ): Promise<OrderItemQueryOutput[]> {
-    const items: OrderItemRow[] = await prisma.$queryRaw<
-      OrderItemRow[]
-    >`
+    const items: OrderItemRow[] = await prisma.$queryRaw<OrderItemRow[]>`
         SELECT
             oi.id as id,
             oi.order_id as orderId,

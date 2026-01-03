@@ -7,8 +7,8 @@
     "build": "tsc && rm -f dist/internal/*.test.d.ts && rm -f dist/internal/*.test.js && rm -fr dist/internal/test",
     "test": "jest --no-cache",
     "lint": "biome check ./src",
-    "fix": "biome format --write ./src",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+    "format": "biome format ./src"
   },
   "keywords": [],
   "author": "Junichi Kato <j5ik2o@gmail.com> (https://j5ik2o.me/)",

@@ -2,11 +2,7 @@ import type { Aggregate } from "event-store-adapter-js";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import type { UserAccountId } from "../user-account";
-import {
-  OrderAddItemError,
-  OrderDeleteError,
-  OrderRemoveItemError,
-} from "./order-errors";
+import { OrderAddItemError, OrderDeleteError, OrderRemoveItemError } from "./order-errors";
 import {
   OrderCreated,
   OrderDeleted,
@@ -18,8 +14,8 @@ import {
   OrderItemRemovedTypeSymbol,
 } from "./order-events";
 import { type OrderId, convertJSONToOrderId } from "./order-id";
-import { OrderItem } from "./order-item";
-import { type OrderItemId } from "./order-item-id";
+import type { OrderItem } from "./order-item";
+import type { OrderItemId } from "./order-item-id";
 import { OrderItems, convertJSONToOrderItems } from "./order-items";
 import { type OrderName, convertJSONToOrderName } from "./order-name";
 
@@ -65,10 +61,7 @@ class Order implements Aggregate<Order, OrderId> {
     };
   }
 
-  addItem(
-    item: OrderItem,
-    executorId: UserAccountId,
-  ): E.Either<OrderAddItemError, [Order, OrderItemAdded]> {
+  addItem(item: OrderItem, executorId: UserAccountId): E.Either<OrderAddItemError, [Order, OrderItemAdded]> {
     if (this.deleted) {
       return E.left(OrderAddItemError.of("The order is deleted"));
     }
@@ -81,12 +74,7 @@ class Order implements Aggregate<Order, OrderId> {
       sequenceNumber: newSequenceNumber,
     });
 
-    const event = OrderItemAdded.of(
-      this.id,
-      item,
-      executorId,
-      newSequenceNumber,
-    );
+    const event = OrderItemAdded.of(this.id, item, executorId, newSequenceNumber);
 
     return E.right([newOrder, event]);
   }
@@ -116,19 +104,12 @@ class Order implements Aggregate<Order, OrderId> {
       sequenceNumber: newSequenceNumber,
     });
 
-    const event = OrderItemRemoved.of(
-      this.id,
-      removedItem,
-      executorId,
-      newSequenceNumber,
-    );
+    const event = OrderItemRemoved.of(this.id, removedItem, executorId, newSequenceNumber);
 
     return E.right([newOrder, event]);
   }
 
-  delete(
-    executorId: UserAccountId,
-  ): E.Either<OrderDeleteError, [Order, OrderDeleted]> {
+  delete(executorId: UserAccountId): E.Either<OrderDeleteError, [Order, OrderDeleted]> {
     if (this.deleted) {
       return E.left(OrderDeleteError.of("The order is already deleted"));
     }
@@ -193,11 +174,7 @@ class Order implements Aggregate<Order, OrderId> {
     return events.reduce((order, event) => order.applyEvent(event), snapshot);
   }
 
-  static create(
-    id: OrderId,
-    name: OrderName,
-    executorId: UserAccountId,
-  ): [Order, OrderCreated] {
+  static create(id: OrderId, name: OrderName, executorId: UserAccountId): [Order, OrderCreated] {
     const sequenceNumber = 1;
     const order = new Order({
       id,

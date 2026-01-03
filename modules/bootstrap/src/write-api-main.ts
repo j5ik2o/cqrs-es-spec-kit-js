@@ -18,17 +18,11 @@ import { EventStoreFactory } from "event-store-adapter-js";
 import { logger } from "./index";
 
 async function writeApiMain() {
-  const apiHost =
-    process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
-  const apiPort =
-    process.env.API_PORT !== undefined
-      ? Number.parseInt(process.env.API_PORT)
-      : 3000;
+  const apiHost = process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
+  const apiPort = process.env.API_PORT !== undefined ? Number.parseInt(process.env.API_PORT) : 3000;
 
   const journalTableName =
-    process.env.PERSISTENCE_JOURNAL_TABLE_NAME !== undefined
-      ? process.env.PERSISTENCE_JOURNAL_TABLE_NAME
-      : "journal";
+    process.env.PERSISTENCE_JOURNAL_TABLE_NAME !== undefined ? process.env.PERSISTENCE_JOURNAL_TABLE_NAME : "journal";
   const snapshotTableName =
     process.env.PERSISTENCE_SNAPSHOT_TABLE_NAME !== undefined
       ? process.env.PERSISTENCE_SNAPSHOT_TABLE_NAME
@@ -42,9 +36,7 @@ async function writeApiMain() {
       ? process.env.PERSISTENCE_SNAPSHOT_AID_INDEX_NAME
       : "snapshots-aid-index";
   const shardCount =
-    process.env.PERSISTENCE_SHARD_COUNT !== undefined
-      ? Number.parseInt(process.env.PERSISTENCE_SHARD_COUNT)
-      : 32;
+    process.env.PERSISTENCE_SHARD_COUNT !== undefined ? Number.parseInt(process.env.PERSISTENCE_SHARD_COUNT) : 32;
 
   const awsRegion = process.env.AWS_REGION;
   const awsDynamodbEndpointUrl = process.env.AWS_DYNAMODB_ENDPOINT_URL;
@@ -65,12 +57,7 @@ async function writeApiMain() {
   logger.info(`AWS_DYNAMODB_SECRET_ACCESS_KEY: ${awsDynamodbSecretAccessKey}`);
 
   let dynamodbClient: DynamoDBClient;
-  if (
-    awsRegion &&
-    awsDynamodbEndpointUrl &&
-    awsDynamodbAccessKeyId &&
-    awsDynamodbSecretAccessKey
-  ) {
+  if (awsRegion && awsDynamodbEndpointUrl && awsDynamodbAccessKeyId && awsDynamodbSecretAccessKey) {
     dynamodbClient = new DynamoDBClient({
       region: awsRegion,
       endpoint: awsDynamodbEndpointUrl,

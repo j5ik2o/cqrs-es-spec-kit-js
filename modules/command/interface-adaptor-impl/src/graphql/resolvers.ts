@@ -7,10 +7,7 @@ import {
   UserAccountId,
 } from "cqrs-es-spec-kit-js-command-domain";
 import { RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
-import {
-  type OrderCommandProcessor,
-  ProcessNotFoundError,
-} from "cqrs-es-spec-kit-js-command-processor";
+import { type OrderCommandProcessor, ProcessNotFoundError } from "cqrs-es-spec-kit-js-command-processor";
 import type { ProcessError } from "cqrs-es-spec-kit-js-command-processor";
 import { OptimisticLockError } from "event-store-adapter-js";
 import type { Task } from "fp-ts/Task";
@@ -19,12 +16,7 @@ import type { TaskEither } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
 import { GraphQLError } from "graphql/error";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import {
-  AddItemInput,
-  CreateOrderInput,
-  DeleteOrderInput,
-  RemoveItemInput,
-} from "./inputs";
+import { AddItemInput, CreateOrderInput, DeleteOrderInput, RemoveItemInput } from "./inputs";
 import { HealthCheckOutput, OrderItemOutput, OrderOutput } from "./outputs";
 
 interface CommandContext {
@@ -83,12 +75,7 @@ class OrderCommandResolver {
       ),
       TE.chainW(({ validatedOrderId, validatedExecutorId }) =>
         pipe(
-          this.validateOrderItem(
-            OrderItemId.generate(),
-            input.name,
-            input.quantity,
-            input.price,
-          ),
+          this.validateOrderItem(OrderItemId.generate(), input.name, input.quantity, input.price),
           TE.map((validatedItem) => ({
             validatedOrderId,
             validatedExecutorId,
@@ -98,11 +85,7 @@ class OrderCommandResolver {
       ),
       TE.chainW(({ validatedOrderId, validatedExecutorId, validatedItem }) =>
         pipe(
-          orderCommandProcessor.addItemToOrder(
-            validatedOrderId,
-            validatedItem,
-            validatedExecutorId,
-          ),
+          orderCommandProcessor.addItemToOrder(validatedOrderId, validatedItem, validatedExecutorId),
           TE.map((orderEvent) => ({
             orderId: orderEvent.aggregateId.asString(),
             itemId: validatedItem.id.asString(),
@@ -141,11 +124,7 @@ class OrderCommandResolver {
         ),
       ),
       TE.chainW(({ validatedOrderId, validatedItemId, validatedExecutorId }) =>
-        orderCommandProcessor.removeItemFromOrder(
-          validatedOrderId,
-          validatedItemId,
-          validatedExecutorId,
-        ),
+        orderCommandProcessor.removeItemFromOrder(validatedOrderId, validatedItemId, validatedExecutorId),
       ),
       TE.map((orderEvent) => ({
         orderId: orderEvent.aggregateId.asString(),
@@ -186,10 +165,7 @@ class OrderCommandResolver {
     if (typeof error === "string") {
       return new ValidationGraphQLError(error);
     }
-    if (
-      error.cause instanceof RepositoryError &&
-      error.cause.cause instanceof OptimisticLockError
-    ) {
+    if (error.cause instanceof RepositoryError && error.cause.cause instanceof OptimisticLockError) {
       return new OptimisticLockingGraphQLError(
         "A conflict occurred while attempting to save your changes. Please try again.",
         error,
@@ -202,15 +178,9 @@ class OrderCommandResolver {
       );
     }
     if (error instanceof ProcessNotFoundError) {
-      return new NotFoundGraphQLError(
-        "The requested resource could not be found.",
-        error,
-      );
+      return new NotFoundGraphQLError("The requested resource could not be found.", error);
     }
-    return new InternalServerGraphQLError(
-      "An unexpected error occurred. Please try again later.",
-      error,
-    );
+    return new InternalServerGraphQLError("An unexpected error occurred. Please try again later.", error);
   }
 
   private toTask<A, B>(): (_: TaskEither<A, B>) => Task<B> {
@@ -228,9 +198,7 @@ class OrderCommandResolver {
     return TE.fromEither(OrderItemId.validate(value));
   }
 
-  private validateUserAccountId(
-    value: string,
-  ): TaskEither<string, UserAccountId> {
+  private validateUserAccountId(value: string): TaskEither<string, UserAccountId> {
     return TE.fromEither(UserAccountId.validate(value));
   }
 

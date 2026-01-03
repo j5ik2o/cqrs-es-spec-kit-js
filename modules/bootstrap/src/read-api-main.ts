@@ -11,12 +11,8 @@ interface MyContext {
 }
 
 async function readApiMain() {
-  const apiHost =
-    process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
-  const apiPort =
-    process.env.API_PORT !== undefined
-      ? Number.parseInt(process.env.API_PORT)
-      : 3000;
+  const apiHost = process.env.API_HOST !== undefined ? process.env.API_HOST : "localhost";
+  const apiPort = process.env.API_PORT !== undefined ? Number.parseInt(process.env.API_PORT) : 3000;
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {

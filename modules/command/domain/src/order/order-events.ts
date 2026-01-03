@@ -1,12 +1,9 @@
 import * as Infrastructure from "cqrs-es-spec-kit-js-infrastructure";
 import type { Event } from "event-store-adapter-js";
-import {
-  type UserAccountId,
-  convertJSONToUserAccountId,
-} from "../user-account";
+import { type UserAccountId, convertJSONToUserAccountId } from "../user-account";
 import { type OrderId, convertJSONToOrderId } from "./order-id";
-import { type OrderName, convertJSONToOrderName } from "./order-name";
 import { type OrderItem, convertJSONToOrderItem } from "./order-item";
+import { type OrderName, convertJSONToOrderName } from "./order-name";
 
 type OrderEventTypeSymbol =
   | typeof OrderCreatedTypeSymbol
@@ -41,20 +38,8 @@ class OrderCreated implements OrderEvent {
     return `OrderCreated(${this.id}, ${this.aggregateId.toString()}, ${this.name.toString()}, ${this.executorId.toString()}, ${this.sequenceNumber}, ${this.occurredAt.toISOString()})`;
   }
 
-  static of(
-    aggregateId: OrderId,
-    name: OrderName,
-    executorId: UserAccountId,
-    sequenceNumber: number,
-  ): OrderCreated {
-    return new OrderCreated(
-      Infrastructure.generateULID(),
-      aggregateId,
-      name,
-      executorId,
-      sequenceNumber,
-      new Date(),
-    );
+  static of(aggregateId: OrderId, name: OrderName, executorId: UserAccountId, sequenceNumber: number): OrderCreated {
+    return new OrderCreated(Infrastructure.generateULID(), aggregateId, name, executorId, sequenceNumber, new Date());
   }
 }
 
@@ -79,28 +64,15 @@ class OrderItemAdded implements OrderEvent {
     return `OrderItemAdded(${this.id}, ${this.aggregateId.toString()}, ${this.item.toString()}, ${this.executorId.toString()}, ${this.sequenceNumber}, ${this.occurredAt.toISOString()})`;
   }
 
-  static of(
-    aggregateId: OrderId,
-    item: OrderItem,
-    executorId: UserAccountId,
-    sequenceNumber: number,
-  ): OrderItemAdded {
-    return new OrderItemAdded(
-      Infrastructure.generateULID(),
-      aggregateId,
-      item,
-      executorId,
-      sequenceNumber,
-      new Date(),
-    );
+  static of(aggregateId: OrderId, item: OrderItem, executorId: UserAccountId, sequenceNumber: number): OrderItemAdded {
+    return new OrderItemAdded(Infrastructure.generateULID(), aggregateId, item, executorId, sequenceNumber, new Date());
   }
 }
 
 const OrderItemRemovedTypeSymbol = Symbol("OrderItemRemoved");
 
 class OrderItemRemoved implements OrderEvent {
-  readonly symbol: typeof OrderItemRemovedTypeSymbol =
-    OrderItemRemovedTypeSymbol;
+  readonly symbol: typeof OrderItemRemovedTypeSymbol = OrderItemRemovedTypeSymbol;
   readonly typeName = "OrderItemRemoved";
 
   private constructor(
@@ -155,18 +127,8 @@ class OrderDeleted implements OrderEvent {
     return `OrderDeleted(${this.id}, ${this.aggregateId.toString()}, ${this.executorId.toString()}, ${this.sequenceNumber}, ${this.occurredAt.toISOString()})`;
   }
 
-  static of(
-    aggregateId: OrderId,
-    executorId: UserAccountId,
-    sequenceNumber: number,
-  ): OrderDeleted {
-    return new OrderDeleted(
-      Infrastructure.generateULID(),
-      aggregateId,
-      executorId,
-      sequenceNumber,
-      new Date(),
-    );
+  static of(aggregateId: OrderId, executorId: UserAccountId, sequenceNumber: number): OrderDeleted {
+    return new OrderDeleted(Infrastructure.generateULID(), aggregateId, executorId, sequenceNumber, new Date());
   }
 }
 
@@ -177,30 +139,15 @@ function convertJSONToOrderEvent(json: any): OrderEvent {
   switch (json.type) {
     case "OrderCreated": {
       const name = convertJSONToOrderName(json.data.name);
-      return OrderCreated.of(
-        aggregateId,
-        name,
-        executorId,
-        json.data.sequenceNumber,
-      );
+      return OrderCreated.of(aggregateId, name, executorId, json.data.sequenceNumber);
     }
     case "OrderItemAdded": {
       const item = convertJSONToOrderItem(json.data.item);
-      return OrderItemAdded.of(
-        aggregateId,
-        item,
-        executorId,
-        json.data.sequenceNumber,
-      );
+      return OrderItemAdded.of(aggregateId, item, executorId, json.data.sequenceNumber);
     }
     case "OrderItemRemoved": {
       const item = convertJSONToOrderItem(json.data.item);
-      return OrderItemRemoved.of(
-        aggregateId,
-        item,
-        executorId,
-        json.data.sequenceNumber,
-      );
+      return OrderItemRemoved.of(aggregateId, item, executorId, json.data.sequenceNumber);
     }
     case "OrderDeleted": {
       return OrderDeleted.of(aggregateId, executorId, json.data.sequenceNumber);
@@ -210,10 +157,7 @@ function convertJSONToOrderEvent(json: any): OrderEvent {
   }
 }
 
-export type {
-  OrderEvent,
-  OrderEventTypeSymbol,
-};
+export type { OrderEvent, OrderEventTypeSymbol };
 
 export {
   OrderCreated,

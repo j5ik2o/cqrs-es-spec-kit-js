@@ -1,12 +1,5 @@
-import {
-  Order,
-  type OrderEvent,
-  type OrderId,
-} from "cqrs-es-spec-kit-js-command-domain";
-import {
-  type OrderRepository,
-  RepositoryError,
-} from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
+import { Order, type OrderEvent, type OrderId } from "cqrs-es-spec-kit-js-command-domain";
+import { type OrderRepository, RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
 import { type EventStore, OptimisticLockError } from "event-store-adapter-js";
 import * as TE from "fp-ts/TaskEither";
 
@@ -18,28 +11,19 @@ class OrderRepositoryImpl implements OrderRepository {
     private readonly snapshotDecider: SnapshotDecider | undefined,
   ) {}
 
-  store(
-    event: OrderEvent,
-    snapshot: Order,
-  ): TE.TaskEither<RepositoryError, void> {
+  store(event: OrderEvent, snapshot: Order): TE.TaskEither<RepositoryError, void> {
     if (event.isCreated || this.snapshotDecider?.(event, snapshot)) {
       return this.storeEventAndSnapshot(event, snapshot);
     }
     return this.storeEvent(event, snapshot.version);
   }
 
-  storeEvent(
-    event: OrderEvent,
-    version: number,
-  ): TE.TaskEither<RepositoryError, void> {
+  storeEvent(event: OrderEvent, version: number): TE.TaskEither<RepositoryError, void> {
     return TE.tryCatch(
       () => this.eventStore.persistEvent(event, version),
       (reason) => {
         if (reason instanceof OptimisticLockError) {
-          return new RepositoryError(
-            "Failed to store event due to optimistic lock error",
-            reason,
-          );
+          return new RepositoryError("Failed to store event due to optimistic lock error", reason);
         }
         if (reason instanceof Error) {
           return new RepositoryError("Failed to store event due to error", reason);
@@ -49,24 +33,15 @@ class OrderRepositoryImpl implements OrderRepository {
     );
   }
 
-  storeEventAndSnapshot(
-    event: OrderEvent,
-    snapshot: Order,
-  ): TE.TaskEither<RepositoryError, void> {
+  storeEventAndSnapshot(event: OrderEvent, snapshot: Order): TE.TaskEither<RepositoryError, void> {
     return TE.tryCatch(
       () => this.eventStore.persistEventAndSnapshot(event, snapshot),
       (reason) => {
         if (reason instanceof OptimisticLockError) {
-          return new RepositoryError(
-            "Failed to store event and snapshot due to optimistic lock error",
-            reason,
-          );
+          return new RepositoryError("Failed to store event and snapshot due to optimistic lock error", reason);
         }
         if (reason instanceof Error) {
-          return new RepositoryError(
-            "Failed to store event and snapshot due to error",
-            reason,
-          );
+          return new RepositoryError("Failed to store event and snapshot due to error", reason);
         }
         return new RepositoryError(String(reason));
       },
@@ -80,10 +55,7 @@ class OrderRepositoryImpl implements OrderRepository {
         if (snapshot === undefined) {
           return undefined;
         }
-        const events = await this.eventStore.getEventsByIdSinceSequenceNumber(
-          id,
-          snapshot.sequenceNumber + 1,
-        );
+        const events = await this.eventStore.getEventsByIdSinceSequenceNumber(id, snapshot.sequenceNumber + 1);
         return Order.replay(events, snapshot);
       },
       (reason) => {
@@ -103,10 +75,7 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   withRetention(numberOfEvents: number): OrderRepository {
-    return new OrderRepositoryImpl(
-      this.eventStore,
-      OrderRepositoryImpl.retentionCriteriaOf(numberOfEvents),
-    );
+    return new OrderRepositoryImpl(this.eventStore, OrderRepositoryImpl.retentionCriteriaOf(numberOfEvents));
   }
 
   static retentionCriteriaOf(numberOfEvents: number): SnapshotDecider {

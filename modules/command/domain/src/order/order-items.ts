@@ -1,5 +1,5 @@
 import * as O from "fp-ts/lib/Option";
-import { OrderItem, convertJSONToOrderItem } from "./order-item";
+import { type OrderItem, convertJSONToOrderItem } from "./order-item";
 import { OrderItemId } from "./order-item-id";
 
 const OrderItemsTypeSymbol = Symbol("OrderItems");
@@ -42,9 +42,7 @@ class OrderItems {
   }
 
   toMap(): Map<OrderItemId, OrderItem> {
-    return new Map(
-      Array.from(this.values, ([key, value]) => [OrderItemId.of(key), value]),
-    );
+    return new Map(Array.from(this.values, ([key, value]) => [OrderItemId.of(key), value]));
   }
 
   totalPrice(): number {
@@ -87,11 +85,7 @@ class OrderItems {
   }
 
   static fromMap(values: Map<OrderItemId, OrderItem>): OrderItems {
-    return new OrderItems(
-      new Map(
-        Array.from(values, ([itemId, item]) => [itemId.value, item]),
-      ),
-    );
+    return new OrderItems(new Map(Array.from(values, ([itemId, item]) => [itemId.value, item])));
   }
 }
 

@@ -11,9 +11,7 @@
     "package:lambda": "./package-lambda.sh",
     "test": "jest --no-cache",
     "lint": "biome check ./src",
-    "lint:fix": "biome check --write ./src",
     "format": "biome format ./src",
-    "format:fix": "biome format --write ./src",
     "clean": "rimraf ./dist"
   },
   "keywords": [],

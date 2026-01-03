@@ -41,9 +41,7 @@ class UserAccountId {
   }
 
   static of(value: string): UserAccountId {
-    const ulid = value.startsWith(`${USER_ACCOUNT_PREFIX}-`)
-      ? value.substring(USER_ACCOUNT_PREFIX.length + 1)
-      : value;
+    const ulid = value.startsWith(`${USER_ACCOUNT_PREFIX}-`) ? value.substring(USER_ACCOUNT_PREFIX.length + 1) : value;
     if (U.isValid(ulid)) {
       return new UserAccountId(ulid);
     }

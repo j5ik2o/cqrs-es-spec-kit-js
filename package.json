@@ -5,6 +5,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
+    "setup-codex": "ln -s $HOME/.codex/auth.json ./.codex/",
     "docker-build-e2e-test": "cd tools/e2e-test && make build",
     "docker-build": "./tools/docker/docker-build.sh",
     "docker-up": "./tools/docker/docker-up.sh",
@@ -16,10 +17,8 @@
     "codex": "./tools/ai-cli/run-codex.sh",
     "build": "turbo build",
     "test": "turbo test",
-    "lint": "turbo lint --concurrency=1",
-    "lint:fix": "turbo lint:fix",
-    "format": "turbo format",
-    "format:fix": "turbo format:fix",
+    "lint": "turbo run lint --concurrency=1",
+    "format": "turbo run format",
     "clean": "turbo clean",
     "prisma:generate": "pnpm --filter \"cqrs-es-spec-kit-js-rmu\" --filter \"cqrs-es-spec-kit-js-query-interface-adaptor\" prisma:generate"
   },
@@ -34,6 +33,8 @@
   },
   "packageManager": "pnpm@10.22.0",
   "devDependencies": {
-    "turbo": "^2.1.1"
+    "@types/jest": "catalog:",
+    "jest": "catalog:",
+    "turbo": "^2.7.2"
   }
 }

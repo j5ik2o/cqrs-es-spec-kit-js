@@ -1,19 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
-import {
-  type OrderId,
-  type OrderItem,
-  type OrderItemId,
-  type OrderName,
-} from "cqrs-es-spec-kit-js-command-domain";
+import type { OrderId, OrderItem, OrderItemId, OrderName } from "cqrs-es-spec-kit-js-command-domain";
 
 class OrderDao {
   private constructor(private readonly prismaClient: PrismaClient) {}
 
-  async insertOrder(
-    aggregateId: OrderId,
-    name: OrderName,
-    createdAt: Date,
-  ): Promise<void> {
+  async insertOrder(aggregateId: OrderId, name: OrderName, createdAt: Date): Promise<void> {
     await this.prismaClient.orders.create({
       data: {
         id: aggregateId.asString(),
@@ -32,11 +23,7 @@ class OrderDao {
     });
   }
 
-  async insertOrderItem(
-    aggregateId: OrderId,
-    item: OrderItem,
-    createdAt: Date,
-  ): Promise<void> {
+  async insertOrderItem(aggregateId: OrderId, item: OrderItem, createdAt: Date): Promise<void> {
     await this.prismaClient.orderItems.create({
       data: {
         id: item.id.asString(),

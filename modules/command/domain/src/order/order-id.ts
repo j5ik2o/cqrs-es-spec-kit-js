@@ -42,9 +42,7 @@ class OrderId implements AggregateId {
   }
 
   static of(value: string): OrderId {
-    const ulid = value.startsWith(`${ORDER_PREFIX}-`)
-      ? value.substring(ORDER_PREFIX.length + 1)
-      : value;
+    const ulid = value.startsWith(`${ORDER_PREFIX}-`) ? value.substring(ORDER_PREFIX.length + 1) : value;
     if (U.isValid(ulid)) {
       return new OrderId(ulid);
     }

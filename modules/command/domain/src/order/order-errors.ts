@@ -17,8 +17,7 @@ class OrderAddItemError extends OrderError {
 const OrderRemoveItemErrorTypeSymbol = Symbol("OrderRemoveItemError");
 
 class OrderRemoveItemError extends OrderError {
-  symbol: typeof OrderRemoveItemErrorTypeSymbol =
-    OrderRemoveItemErrorTypeSymbol;
+  symbol: typeof OrderRemoveItemErrorTypeSymbol = OrderRemoveItemErrorTypeSymbol;
 
   private constructor(message: string, cause?: Error) {
     super(message, cause);
@@ -32,8 +31,7 @@ class OrderRemoveItemError extends OrderError {
 const OrderDeleteErrorTypeSymbol = Symbol("OrderDeleteError");
 
 class OrderDeleteError extends Error {
-  readonly symbol: typeof OrderDeleteErrorTypeSymbol =
-    OrderDeleteErrorTypeSymbol;
+  readonly symbol: typeof OrderDeleteErrorTypeSymbol = OrderDeleteErrorTypeSymbol;
 
   private constructor(message: string, cause?: Error) {
     super(message);

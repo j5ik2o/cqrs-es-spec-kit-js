@@ -41,9 +41,7 @@ class OrderItemId {
   }
 
   static of(value: string): OrderItemId {
-    const ulid = value.startsWith(`${ORDER_ITEM_PREFIX}-`)
-      ? value.substring(ORDER_ITEM_PREFIX.length + 1)
-      : value;
+    const ulid = value.startsWith(`${ORDER_ITEM_PREFIX}-`) ? value.substring(ORDER_ITEM_PREFIX.length + 1) : value;
     if (U.isValid(ulid)) {
       return new OrderItemId(ulid);
     }

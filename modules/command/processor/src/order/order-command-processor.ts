@@ -10,20 +10,14 @@ import {
   OrderRemoveItemError,
   type UserAccountId,
 } from "cqrs-es-spec-kit-js-command-domain";
-import {
-  type OrderRepository,
-  RepositoryError,
-} from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
+import { type OrderRepository, RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
 
 class OrderCommandProcessor {
   private constructor(private readonly orderRepository: OrderRepository) {}
 
-  createOrder(
-    name: OrderName,
-    executorId: UserAccountId,
-  ): TE.TaskEither<ProcessError, OrderEvent> {
+  createOrder(name: OrderName, executorId: UserAccountId): TE.TaskEither<ProcessError, OrderEvent> {
     return pipe(
       TE.right(OrderId.generate()),
       TE.chain((id) => TE.right(Order.create(id, name, executorId))),
@@ -37,11 +31,7 @@ class OrderCommandProcessor {
     );
   }
 
-  addItemToOrder(
-    id: OrderId,
-    item: OrderItem,
-    executorId: UserAccountId,
-  ): TE.TaskEither<ProcessError, OrderEvent> {
+  addItemToOrder(id: OrderId, item: OrderItem, executorId: UserAccountId): TE.TaskEither<ProcessError, OrderEvent> {
     return pipe(
       this.orderRepository.findById(id),
       TE.chainW(this.getOrError),
@@ -83,10 +73,7 @@ class OrderCommandProcessor {
     );
   }
 
-  deleteOrder(
-    id: OrderId,
-    executorId: UserAccountId,
-  ): TE.TaskEither<ProcessError, OrderEvent> {
+  deleteOrder(id: OrderId, executorId: UserAccountId): TE.TaskEither<ProcessError, OrderEvent> {
     return pipe(
       this.orderRepository.findById(id),
       TE.chainW(this.getOrError),
@@ -128,27 +115,15 @@ class OrderCommandProcessor {
     throw e;
   }
 
-  private getOrError(
-    orderOpt: Order | undefined,
-  ): TE.TaskEither<ProcessError, Order> {
-    return orderOpt === undefined
-      ? TE.left(new ProcessNotFoundError("Order not found"))
-      : TE.right(orderOpt);
+  private getOrError(orderOpt: Order | undefined): TE.TaskEither<ProcessError, Order> {
+    return orderOpt === undefined ? TE.left(new ProcessNotFoundError("Order not found")) : TE.right(orderOpt);
   }
 
-  private addItemAsync(
-    order: Order,
-    item: OrderItem,
-    executorId: UserAccountId,
-  ) {
+  private addItemAsync(order: Order, item: OrderItem, executorId: UserAccountId) {
     return TE.fromEither(order.addItem(item, executorId));
   }
 
-  private removeItemAsync(
-    order: Order,
-    itemId: OrderItemId,
-    executorId: UserAccountId,
-  ) {
+  private removeItemAsync(order: Order, itemId: OrderItemId, executorId: UserAccountId) {
     return TE.fromEither(order.removeItem(itemId, executorId));
   }
 
@@ -175,9 +150,4 @@ class ProcessNotFoundError extends ProcessError {
   }
 }
 
-export {
-  OrderCommandProcessor,
-  ProcessError,
-  ProcessInternalError,
-  ProcessNotFoundError,
-};
+export { OrderCommandProcessor, ProcessError, ProcessInternalError, ProcessNotFoundError };

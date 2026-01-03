@@ -1,14 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+import { type Prisma, PrismaClient } from "@prisma/client";
 import type { DynamoDBStreamEvent, DynamoDBStreamHandler } from "aws-lambda";
 import { OrderDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
 import { type ILogObj, Logger } from "tslog";
+import type { PrismaQueryEvent } from "./types";
 
 const logger: Logger<ILogObj> = new Logger({
   name: "lambda-rmu-handler",
 });
 
 // Lambda関数外でPrismaClientを初期化（接続再利用のため）
-let prisma: PrismaClient | undefined;
+let prisma: PrismaClient<Prisma.PrismaClientOptions, "query"> | undefined;
 let readModelUpdater: ReadModelUpdater | undefined;
 
 function initializePrisma(): void {
@@ -32,8 +33,7 @@ function initializePrisma(): void {
       ],
     });
 
-    // @ts-ignore - Prisma event type issue
-    prisma.$on("query", (e: any) => {
+    prisma.$on("query", (e: PrismaQueryEvent) => {
       logger.debug(`Query: ${e.query}`);
       logger.debug(`Params: ${e.params}`);
       logger.debug(`Duration: ${e.duration}ms`);
@@ -45,9 +45,7 @@ function initializePrisma(): void {
   }
 }
 
-export const handler: DynamoDBStreamHandler = async (
-  event: DynamoDBStreamEvent,
-): Promise<void> => {
+export const handler: DynamoDBStreamHandler = async (event: DynamoDBStreamEvent): Promise<void> => {
   logger.info("Lambda function invoked", {
     recordCount: event.Records.length,
   });

@@ -60,21 +60,11 @@ class OrderItem {
     return this.id.equals(other.id);
   }
 
-  static of(
-    id: OrderItemId,
-    name: string,
-    quantity: number,
-    price: number,
-  ): OrderItem {
+  static of(id: OrderItemId, name: string, quantity: number, price: number): OrderItem {
     return new OrderItem({ id, name, quantity, price });
   }
 
-  static validate(
-    id: OrderItemId,
-    name: string,
-    quantity: number,
-    price: number,
-  ): E.Either<string, OrderItem> {
+  static validate(id: OrderItemId, name: string, quantity: number, price: number): E.Either<string, OrderItem> {
     try {
       return E.right(OrderItem.of(id, name, quantity, price));
     } catch (error) {
