@@ -1,19 +1,19 @@
 import "reflect-metadata";
-import { HealthCheckOutput, OrderItemOutput, OrderOutput } from "./outputs";
+import { HealthCheckOutput, CartItemOutput, CartOutput } from "./outputs";
 
 describe("graphql outputs", () => {
   it("allows assigning fields", () => {
-    const orderOutput = new OrderOutput();
-    orderOutput.orderId = "order";
+    const cartOutput = new CartOutput();
+    cartOutput.cartId = "cart";
 
-    const itemOutput = new OrderItemOutput();
-    itemOutput.orderId = "order";
+    const itemOutput = new CartItemOutput();
+    itemOutput.cartId = "cart";
     itemOutput.itemId = "item";
 
     const health = new HealthCheckOutput();
     health.value = "OK";
 
-    expect(orderOutput.orderId).toBe("order");
+    expect(cartOutput.cartId).toBe("cart");
     expect(itemOutput.itemId).toBe("item");
     expect(health.value).toBe("OK");
   });

@@ -58,5 +58,12 @@ describe("readApiMain", () => {
         listen: { host: "127.0.0.1", port: 4000 },
       }),
     );
+
+    expect(prismaOn).toHaveBeenCalledTimes(1);
+    const queryCallback = prismaOn.mock.calls[0][1];
+    await queryCallback({ query: "SELECT 1", params: "[]", duration: 1 });
+    const contextFactory = startStandaloneServer.mock.calls[0][1].context;
+    const context = await contextFactory();
+    expect(context.prisma).toBe(prismaConstructor.mock.results[0].value);
   });
 });

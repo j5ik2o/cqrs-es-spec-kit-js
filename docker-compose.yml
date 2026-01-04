@@ -10,9 +10,9 @@ services:
       - 33306:3306
     environment:
       MYSQL_ROOT_PASSWORD: passwd
-      MYSQL_USER: orderdb
-      MYSQL_PASSWORD: orderdb
-      MYSQL_DATABASE: orderdb
+      MYSQL_USER: cartdb
+      MYSQL_PASSWORD: cartdb
+      MYSQL_DATABASE: cartdb
 
   migration:
     image: migrate/migrate:v4.18.3
@@ -24,7 +24,7 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "mysql://orderdb:orderdb@tcp(mysql-local:3306)/orderdb",
+        "mysql://cartdb:cartdb@tcp(mysql-local:3306)/cartdb",
       ]
     command: [ "up" ]
     depends_on:
@@ -153,7 +153,7 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       LAMBDA_FUNCTION_NAME: read-model-updater
       LAMBDA_ZIP_PATH: /app/modules/bootstrap/dist/lambda/function.zip
-      DATABASE_URL: mysql://orderdb:orderdb@mysql-local:3306/orderdb
+      DATABASE_URL: mysql://cartdb:cartdb@mysql-local:3306/cartdb
       STREAM_JOURNAL_TABLE_NAME: journal
       EVENT_BATCH_SIZE: 10
       MAX_RETRY_ATTEMPTS: 2
@@ -182,7 +182,7 @@ services:
             --zip-file fileb:///app/modules/bootstrap/dist/lambda/function.zip \
             --timeout 60 \
             --memory-size 512 \
-            --environment "Variables={DATABASE_URL=mysql://orderdb:orderdb@mysql-local:3306/orderdb}" \
+            --environment "Variables={DATABASE_URL=mysql://cartdb:cartdb@mysql-local:3306/cartdb}" \
             --endpoint-url http://localstack:4566 \
             --region ap-northeast-1
         fi
@@ -259,7 +259,7 @@ services:
       API_HOST: "0.0.0.0"
       API_PORT: 3000
       API_ALLOW_ORIGINS: "http://localhost:38080,http://localhost:38082,http://localhost:8888"
-      DATABASE_URL: mysql://orderdb:orderdb@mysql-local:3306/orderdb
+      DATABASE_URL: mysql://cartdb:cartdb@mysql-local:3306/cartdb
     depends_on:
       mysql:
         condition: service_healthy

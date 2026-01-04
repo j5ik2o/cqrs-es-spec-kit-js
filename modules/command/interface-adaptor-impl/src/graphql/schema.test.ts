@@ -9,10 +9,10 @@ describe("createCommandSchema", () => {
     expect(mutationType).toBeDefined();
     if (mutationType) {
       const fields = mutationType.getFields();
-      expect(fields.createOrder).toBeDefined();
-      expect(fields.addItem).toBeDefined();
-      expect(fields.removeItem).toBeDefined();
-      expect(fields.deleteOrder).toBeDefined();
+      expect(fields.createCart).toBeDefined();
+      expect(fields.addItemToCart).toBeDefined();
+      expect(fields.removeItemFromCart).toBeDefined();
+      expect(fields.deleteCart).toBeDefined();
     }
   });
 });

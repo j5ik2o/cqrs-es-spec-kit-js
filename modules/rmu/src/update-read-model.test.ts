@@ -1,19 +1,19 @@
 import type { DynamoDBStreamEvent } from "aws-lambda";
 import {
-  OrderId,
-  OrderItem,
-  OrderItemId,
-  OrderName,
+  CartId,
+  CartItem,
+  CartItemId,
+  CartName,
   UserAccountId,
 } from "cqrs-es-spec-kit-js-command-domain";
 import { ReadModelUpdater } from "./update-read-model";
-import type { OrderDao } from "./order-dao";
+import type { CartDao } from "./cart-dao";
 
 type DaoMock = {
-  insertOrder: jest.Mock;
-  deleteOrder: jest.Mock;
-  insertOrderItem: jest.Mock;
-  deleteOrderItem: jest.Mock;
+  insertCart: jest.Mock;
+  deleteCart: jest.Mock;
+  insertCartItem: jest.Mock;
+  deleteCartItem: jest.Mock;
 };
 
 const encodeEvent = (payload: object): DynamoDBStreamEvent => {
@@ -32,24 +32,24 @@ const encodeEvent = (payload: object): DynamoDBStreamEvent => {
 };
 
 const createDao = (): DaoMock => ({
-  insertOrder: jest.fn().mockResolvedValue(undefined),
-  deleteOrder: jest.fn().mockResolvedValue(undefined),
-  insertOrderItem: jest.fn().mockResolvedValue(undefined),
-  deleteOrderItem: jest.fn().mockResolvedValue(undefined),
+  insertCart: jest.fn().mockResolvedValue(undefined),
+  deleteCart: jest.fn().mockResolvedValue(undefined),
+  insertCartItem: jest.fn().mockResolvedValue(undefined),
+  deleteCartItem: jest.fn().mockResolvedValue(undefined),
 });
 
 describe("ReadModelUpdater", () => {
-  it("handles order created events", async () => {
+  it("handles cart created events", async () => {
     const dao = createDao();
-    const updater = ReadModelUpdater.of(dao as unknown as OrderDao);
-    const orderId = OrderId.generate();
+    const updater = ReadModelUpdater.of(dao as unknown as CartDao);
+    const cartId = CartId.generate();
     const executorId = UserAccountId.generate();
-    const name = OrderName.of("sample");
+    const name = CartName.of("sample");
 
     const event = encodeEvent({
-      type: "OrderCreated",
+      type: "CartCreated",
       data: {
-        aggregateId: orderId.toJSON(),
+        aggregateId: cartId.toJSON(),
         name: name.toJSON(),
         executorId: executorId.toJSON(),
         sequenceNumber: 1,
@@ -58,51 +58,51 @@ describe("ReadModelUpdater", () => {
 
     await updater.updateReadModel(event);
 
-    expect(dao.insertOrder).toHaveBeenCalledTimes(1);
+    expect(dao.insertCart).toHaveBeenCalledTimes(1);
   });
 
-  it("handles order item events", async () => {
+  it("handles cart item events", async () => {
     const dao = createDao();
-    const updater = ReadModelUpdater.of(dao as unknown as OrderDao);
-    const orderId = OrderId.generate();
+    const updater = ReadModelUpdater.of(dao as unknown as CartDao);
+    const cartId = CartId.generate();
     const executorId = UserAccountId.generate();
-    const item = OrderItem.of(OrderItemId.generate(), "item", 1, 100);
+    const item = CartItem.of(CartItemId.generate(), "item", 1, 100);
 
     const addedEvent = encodeEvent({
-      type: "OrderItemAdded",
+      type: "CartItemAdded",
       data: {
-        aggregateId: orderId.toJSON(),
+        aggregateId: cartId.toJSON(),
         item: item.toJSON(),
         executorId: executorId.toJSON(),
         sequenceNumber: 2,
       },
     });
     await updater.updateReadModel(addedEvent);
-    expect(dao.insertOrderItem).toHaveBeenCalledTimes(1);
+    expect(dao.insertCartItem).toHaveBeenCalledTimes(1);
 
     const removedEvent = encodeEvent({
-      type: "OrderItemRemoved",
+      type: "CartItemRemoved",
       data: {
-        aggregateId: orderId.toJSON(),
+        aggregateId: cartId.toJSON(),
         item: item.toJSON(),
         executorId: executorId.toJSON(),
         sequenceNumber: 3,
       },
     });
     await updater.updateReadModel(removedEvent);
-    expect(dao.deleteOrderItem).toHaveBeenCalledTimes(1);
+    expect(dao.deleteCartItem).toHaveBeenCalledTimes(1);
   });
 
-  it("handles order deleted events", async () => {
+  it("handles cart deleted events", async () => {
     const dao = createDao();
-    const updater = ReadModelUpdater.of(dao as unknown as OrderDao);
-    const orderId = OrderId.generate();
+    const updater = ReadModelUpdater.of(dao as unknown as CartDao);
+    const cartId = CartId.generate();
     const executorId = UserAccountId.generate();
 
     const event = encodeEvent({
-      type: "OrderDeleted",
+      type: "CartDeleted",
       data: {
-        aggregateId: orderId.toJSON(),
+        aggregateId: cartId.toJSON(),
         executorId: executorId.toJSON(),
         sequenceNumber: 4,
       },
@@ -110,16 +110,16 @@ describe("ReadModelUpdater", () => {
 
     await updater.updateReadModel(event);
 
-    expect(dao.deleteOrder).toHaveBeenCalledTimes(1);
+    expect(dao.deleteCart).toHaveBeenCalledTimes(1);
   });
 
   it("returns early for missing records", async () => {
     const dao = createDao();
-    const updater = ReadModelUpdater.of(dao as unknown as OrderDao);
+    const updater = ReadModelUpdater.of(dao as unknown as CartDao);
 
     await updater.updateReadModel({ Records: [{}] } as DynamoDBStreamEvent);
 
-    expect(dao.insertOrder).not.toHaveBeenCalled();
-    expect(dao.deleteOrder).not.toHaveBeenCalled();
+    expect(dao.insertCart).not.toHaveBeenCalled();
+    expect(dao.deleteCart).not.toHaveBeenCalled();
   });
 });

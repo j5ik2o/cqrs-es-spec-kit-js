@@ -33,7 +33,7 @@
 
 ## 命名規約
 
-- **ファイル**: kebab-case（例: `order-item-id.ts`）
+- **ファイル**: kebab-case（例: `cart-item-id.ts`）
 - **エクスポート**: パッケージごとに `src/index.ts` で集約する
 - **ドメイン型**: `*Id`, `*Name` など値オブジェクト由来の命名を使う
 
@@ -41,8 +41,8 @@
 
 ```typescript
 import type { Aggregate } from "event-store-adapter-js";
-import { OrderId } from "cqrs-es-spec-kit-js-command-domain";
-import { OrderItems } from "./order-items";
+import { CartId } from "cqrs-es-spec-kit-js-command-domain";
+import { CartItems } from "./cart-items";
 ```
 
 **パスエイリアス**:

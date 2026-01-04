@@ -10,7 +10,7 @@ import {
 } from "@aws-sdk/client-dynamodb-streams";
 import { PrismaClient } from "@prisma/client";
 import type { DynamoDBStreamEvent, AttributeValue as LambdaAttributeValue } from "aws-lambda";
-import { OrderDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
+import { CartDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
 import { logger } from "./index";
 import type { PrismaQueryEvent } from "./types";
 
@@ -86,7 +86,7 @@ async function localRmuMain(options: LocalRmuOptions = {}) {
     logger.info(`Params: ${e.params}`);
     logger.info(`Duration: ${e.duration}ms`);
   });
-  const dao = OrderDao.of(prisma);
+  const dao = CartDao.of(prisma);
   const readModelUpdater = ReadModelUpdater.of(dao);
 
   const maxIterations = options.maxIterations ?? Number.POSITIVE_INFINITY;

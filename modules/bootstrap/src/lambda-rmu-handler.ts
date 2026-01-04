@@ -1,6 +1,6 @@
 import { type Prisma, PrismaClient } from "@prisma/client";
 import type { DynamoDBStreamEvent, DynamoDBStreamHandler } from "aws-lambda";
-import { OrderDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
+import { CartDao, ReadModelUpdater } from "cqrs-es-spec-kit-js-rmu";
 import { type ILogObj, Logger } from "tslog";
 import type { PrismaQueryEvent } from "./types";
 
@@ -39,7 +39,7 @@ function initializePrisma(): void {
       logger.debug(`Duration: ${e.duration}ms`);
     });
 
-    const dao = OrderDao.of(prisma);
+    const dao = CartDao.of(prisma);
     readModelUpdater = ReadModelUpdater.of(dao);
     logger.info("Prisma Client and ReadModelUpdater initialized");
   }

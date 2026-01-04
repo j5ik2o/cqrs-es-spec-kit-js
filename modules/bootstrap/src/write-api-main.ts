@@ -2,18 +2,18 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  type Order,
-  type OrderEvent,
-  type OrderId,
-  convertJSONToOrder,
-  convertJSONToOrderEvent,
+  type Cart,
+  type CartEvent,
+  type CartId,
+  convertJSONToCart,
+  convertJSONToCartEvent,
 } from "cqrs-es-spec-kit-js-command-domain";
 import {
   type CommandContext,
-  OrderRepositoryImpl,
+  CartRepositoryImpl,
   createCommandSchema,
 } from "cqrs-es-spec-kit-js-command-interface-adaptor-impl";
-import { OrderCommandProcessor } from "cqrs-es-spec-kit-js-command-processor";
+import { CartCommandProcessor } from "cqrs-es-spec-kit-js-command-processor";
 import { EventStoreFactory } from "event-store-adapter-js";
 import { logger } from "./index";
 
@@ -70,24 +70,24 @@ async function writeApiMain() {
     dynamodbClient = new DynamoDBClient();
   }
 
-  const eventStore = EventStoreFactory.ofDynamoDB<OrderId, Order, OrderEvent>(
+  const eventStore = EventStoreFactory.ofDynamoDB<CartId, Cart, CartEvent>(
     dynamodbClient,
     journalTableName,
     snapshotTableName,
     journalAidIndexName,
     snapshotAidIndexName,
     shardCount,
-    convertJSONToOrderEvent,
-    convertJSONToOrder,
+    convertJSONToCartEvent,
+    convertJSONToCart,
   );
-  const orderRepository = OrderRepositoryImpl.of(eventStore).withRetention(100);
-  const orderCommandProcessor = OrderCommandProcessor.of(orderRepository);
+  const cartRepository = CartRepositoryImpl.of(eventStore).withRetention(100);
+  const cartCommandProcessor = CartCommandProcessor.of(cartRepository);
 
   const schema = await createCommandSchema();
   const server = new ApolloServer<CommandContext>({ schema });
   const { url } = await startStandaloneServer(server, {
     context: async (): Promise<CommandContext> => ({
-      orderCommandProcessor,
+      cartCommandProcessor,
     }),
     listen: { host: apiHost, port: apiPort },
   });

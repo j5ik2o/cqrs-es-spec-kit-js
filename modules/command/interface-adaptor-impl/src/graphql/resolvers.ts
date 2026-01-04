@@ -1,13 +1,13 @@
 import {
-  OrderError,
-  OrderId,
-  OrderItem,
-  OrderItemId,
-  OrderName,
+  CartError,
+  CartId,
+  CartItem,
+  CartItemId,
+  CartName,
   UserAccountId,
 } from "cqrs-es-spec-kit-js-command-domain";
 import { RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
-import { type OrderCommandProcessor, ProcessNotFoundError } from "cqrs-es-spec-kit-js-command-processor";
+import { type CartCommandProcessor, ProcessNotFoundError } from "cqrs-es-spec-kit-js-command-processor";
 import type { ProcessError } from "cqrs-es-spec-kit-js-command-processor";
 import { OptimisticLockError } from "event-store-adapter-js";
 import type { Task } from "fp-ts/Task";
@@ -16,27 +16,32 @@ import type { TaskEither } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
 import { GraphQLError } from "graphql/error";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { AddItemInput, CreateOrderInput, DeleteOrderInput, RemoveItemInput } from "./inputs";
-import { HealthCheckOutput, OrderItemOutput, OrderOutput } from "./outputs";
+import {
+  AddItemToCartInput,
+  CreateCartInput,
+  DeleteCartInput,
+  RemoveItemFromCartInput,
+} from "./inputs";
+import { HealthCheckOutput, CartItemOutput, CartOutput } from "./outputs";
 
 interface CommandContext {
-  orderCommandProcessor: OrderCommandProcessor;
+  cartCommandProcessor: CartCommandProcessor;
 }
 
 @Resolver()
-class OrderCommandResolver {
+class CartCommandResolver {
   @Query(() => HealthCheckOutput)
   async healthCheck(): Promise<HealthCheckOutput> {
     return { value: "OK" };
   }
 
-  @Mutation(() => OrderOutput)
-  async createOrder(
-    @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input", () => CreateOrderInput) input: CreateOrderInput,
-  ): Promise<OrderOutput> {
+  @Mutation(() => CartOutput)
+  async createCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input", () => CreateCartInput) input: CreateCartInput,
+  ): Promise<CartOutput> {
     return pipe(
-      this.validateOrderName(input.name),
+      this.validateCartName(input.name),
       TE.chainW((validatedName) =>
         pipe(
           this.validateUserAccountId(input.executorId),
@@ -47,47 +52,47 @@ class OrderCommandResolver {
         ),
       ),
       TE.chainW(({ validatedName, validatedExecutorId }) =>
-        orderCommandProcessor.createOrder(validatedName, validatedExecutorId),
+        cartCommandProcessor.createCart(validatedName, validatedExecutorId),
       ),
-      TE.map((orderEvent) => ({
-        orderId: orderEvent.aggregateId.asString(),
+      TE.map((cartEvent) => ({
+        cartId: cartEvent.aggregateId.asString(),
       })),
       TE.mapLeft(this.convertToError),
       this.toTask(),
     )();
   }
 
-  @Mutation(() => OrderItemOutput)
-  async addItem(
-    @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input", () => AddItemInput) input: AddItemInput,
-  ): Promise<OrderItemOutput> {
+  @Mutation(() => CartItemOutput)
+  async addItemToCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input", () => AddItemToCartInput) input: AddItemToCartInput,
+  ): Promise<CartItemOutput> {
     return pipe(
-      this.validateOrderId(input.orderId),
-      TE.chainW((validatedOrderId) =>
+      this.validateCartId(input.cartId),
+      TE.chainW((validatedCartId) =>
         pipe(
           this.validateUserAccountId(input.executorId),
           TE.map((validatedExecutorId) => ({
-            validatedOrderId,
+            validatedCartId,
             validatedExecutorId,
           })),
         ),
       ),
-      TE.chainW(({ validatedOrderId, validatedExecutorId }) =>
+      TE.chainW(({ validatedCartId, validatedExecutorId }) =>
         pipe(
-          this.validateOrderItem(OrderItemId.generate(), input.name, input.quantity, input.price),
+          this.validateCartItem(CartItemId.generate(), input.name, input.quantity, input.price),
           TE.map((validatedItem) => ({
-            validatedOrderId,
+            validatedCartId,
             validatedExecutorId,
             validatedItem,
           })),
         ),
       ),
-      TE.chainW(({ validatedOrderId, validatedExecutorId, validatedItem }) =>
+      TE.chainW(({ validatedCartId, validatedExecutorId, validatedItem }) =>
         pipe(
-          orderCommandProcessor.addItemToOrder(validatedOrderId, validatedItem, validatedExecutorId),
-          TE.map((orderEvent) => ({
-            orderId: orderEvent.aggregateId.asString(),
+          cartCommandProcessor.addItemToCart(validatedCartId, validatedItem, validatedExecutorId),
+          TE.map((cartEvent) => ({
+            cartId: cartEvent.aggregateId.asString(),
             itemId: validatedItem.id.asString(),
           })),
         ),
@@ -97,64 +102,64 @@ class OrderCommandResolver {
     )();
   }
 
-  @Mutation(() => OrderOutput)
-  async removeItem(
-    @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input", () => RemoveItemInput) input: RemoveItemInput,
-  ): Promise<OrderOutput> {
+  @Mutation(() => CartOutput)
+  async removeItemFromCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input", () => RemoveItemFromCartInput) input: RemoveItemFromCartInput,
+  ): Promise<CartOutput> {
     return pipe(
-      this.validateOrderId(input.orderId),
-      TE.chainW((validatedOrderId) =>
+      this.validateCartId(input.cartId),
+      TE.chainW((validatedCartId) =>
         pipe(
-          this.validateOrderItemId(input.itemId),
+          this.validateCartItemId(input.itemId),
           TE.map((validatedItemId) => ({
-            validatedOrderId,
+            validatedCartId,
             validatedItemId,
           })),
         ),
       ),
-      TE.chainW(({ validatedOrderId, validatedItemId }) =>
+      TE.chainW(({ validatedCartId, validatedItemId }) =>
         pipe(
           this.validateUserAccountId(input.executorId),
           TE.map((validatedExecutorId) => ({
-            validatedOrderId,
+            validatedCartId,
             validatedItemId,
             validatedExecutorId,
           })),
         ),
       ),
-      TE.chainW(({ validatedOrderId, validatedItemId, validatedExecutorId }) =>
-        orderCommandProcessor.removeItemFromOrder(validatedOrderId, validatedItemId, validatedExecutorId),
+      TE.chainW(({ validatedCartId, validatedItemId, validatedExecutorId }) =>
+        cartCommandProcessor.removeItemFromCart(validatedCartId, validatedItemId, validatedExecutorId),
       ),
-      TE.map((orderEvent) => ({
-        orderId: orderEvent.aggregateId.asString(),
+      TE.map((cartEvent) => ({
+        cartId: cartEvent.aggregateId.asString(),
       })),
       TE.mapLeft(this.convertToError),
       this.toTask(),
     )();
   }
 
-  @Mutation(() => OrderOutput)
-  async deleteOrder(
-    @Ctx() { orderCommandProcessor }: CommandContext,
-    @Arg("input", () => DeleteOrderInput) input: DeleteOrderInput,
-  ): Promise<OrderOutput> {
+  @Mutation(() => CartOutput)
+  async deleteCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input", () => DeleteCartInput) input: DeleteCartInput,
+  ): Promise<CartOutput> {
     return pipe(
-      this.validateOrderId(input.orderId),
-      TE.chainW((validatedOrderId) =>
+      this.validateCartId(input.cartId),
+      TE.chainW((validatedCartId) =>
         pipe(
           this.validateUserAccountId(input.executorId),
           TE.map((validatedExecutorId) => ({
-            validatedOrderId,
+            validatedCartId,
             validatedExecutorId,
           })),
         ),
       ),
-      TE.chainW(({ validatedOrderId, validatedExecutorId }) =>
-        orderCommandProcessor.deleteOrder(validatedOrderId, validatedExecutorId),
+      TE.chainW(({ validatedCartId, validatedExecutorId }) =>
+        cartCommandProcessor.deleteCart(validatedCartId, validatedExecutorId),
       ),
-      TE.map((orderEvent) => ({
-        orderId: orderEvent.aggregateId.asString(),
+      TE.map((cartEvent) => ({
+        cartId: cartEvent.aggregateId.asString(),
       })),
       TE.mapLeft(this.convertToError),
       this.toTask(),
@@ -171,7 +176,7 @@ class OrderCommandResolver {
         error,
       );
     }
-    if (error.cause instanceof OrderError) {
+    if (error.cause instanceof CartError) {
       return new DomainLogicGraphQLError(
         "The request could not be processed due to a domain logic error. Please verify your data and try again.",
         error,
@@ -190,29 +195,29 @@ class OrderCommandResolver {
     );
   }
 
-  private validateOrderId(value: string): TaskEither<string, OrderId> {
-    return TE.fromEither(OrderId.validate(value));
+  private validateCartId(value: string): TaskEither<string, CartId> {
+    return TE.fromEither(CartId.validate(value));
   }
 
-  private validateOrderItemId(value: string): TaskEither<string, OrderItemId> {
-    return TE.fromEither(OrderItemId.validate(value));
+  private validateCartItemId(value: string): TaskEither<string, CartItemId> {
+    return TE.fromEither(CartItemId.validate(value));
   }
 
   private validateUserAccountId(value: string): TaskEither<string, UserAccountId> {
     return TE.fromEither(UserAccountId.validate(value));
   }
 
-  private validateOrderName(value: string): TaskEither<string, OrderName> {
-    return TE.fromEither(OrderName.validate(value));
+  private validateCartName(value: string): TaskEither<string, CartName> {
+    return TE.fromEither(CartName.validate(value));
   }
 
-  private validateOrderItem(
-    id: OrderItemId,
+  private validateCartItem(
+    id: CartItemId,
     name: string,
     quantity: number,
     price: number,
-  ): TE.TaskEither<string, OrderItem> {
-    return TE.fromEither(OrderItem.validate(id, name, quantity, price));
+  ): TE.TaskEither<string, CartItem> {
+    return TE.fromEither(CartItem.validate(id, name, quantity, price));
   }
 }
 
@@ -272,7 +277,7 @@ class InternalServerGraphQLError extends GraphQLError {
 
 export {
   type CommandContext,
-  OrderCommandResolver,
+  CartCommandResolver,
   ValidationGraphQLError,
   OptimisticLockingGraphQLError,
   InternalServerGraphQLError,

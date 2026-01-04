@@ -14,29 +14,29 @@
 以下のモジュールにSkeletonコードを生成する：
 
 ### modules/command/domain
-- サンプルアグリゲート（`Order`）
-  - `Order` アグリゲートルート
-  - `OrderId`, `OrderName` 値オブジェクト
-  - `OrderItem`, `OrderItems` エンティティコレクション
-  - `order-events.ts` ドメインイベント定義
-  - `order-errors.ts` ドメインエラー定義
+- サンプルアグリゲート（`Cart`）
+  - `Cart` アグリゲートルート
+  - `CartId`, `CartName` 値オブジェクト
+  - `CartItem`, `CartItems` エンティティコレクション
+  - `cart-events.ts` ドメインイベント定義
+  - `cart-errors.ts` ドメインエラー定義
 
 ### modules/command/interface-adaptor-if
 - リポジトリインターフェース
-  - `OrderRepository` インターフェース
+  - `CartRepository` インターフェース
 
 ### modules/command/interface-adaptor-impl
 - GraphQL Mutation実装
-  - `CreateOrderInput`, `AddOrderItemInput` 入力型
-  - `OrderMutationResolver` リゾルバ
+  - `CreateCartInput`, `AddItemToCartInput` 入力型
+  - `CartCommandResolver` リゾルバ
 
 ### modules/command/processor
 - コマンドプロセッサ
-  - `OrderCommandProcessor`
+  - `CartCommandProcessor`
 
 ### modules/query/interface-adaptor
 - GraphQL Query実装
-  - `OrderQueryResolver` リゾルバ
+  - `CartQueryResolver` リゾルバ
   - Prismaスキーマ定義
 
 ### modules/rmu
@@ -52,14 +52,14 @@
 ## 設計上の決定
 
 ### 1. ドメインモデル選択
-**選択**: `Order`（注文）アグリゲート
+**選択**: `Cart`（カート）アグリゲート
 **理由**:
 - 参照実装の`GroupChat`よりシンプルで理解しやすい
 - ビジネスドメインとして一般的で、多くの開発者が理解できる
-- アグリゲート内のエンティティコレクション（OrderItems）でパターンを示せる
+- アグリゲート内のエンティティコレクション（CartItems）でパターンを示せる
 
 ### 2. イベント命名規則
-**選択**: 過去分詞形（`OrderCreated`, `OrderItemAdded`）
+**選択**: 過去分詞形（`CartCreated`, `CartItemAdded`）
 **理由**: プロジェクト規約に従い、事実の記録として明確
 
 ### 3. エラーハンドリング
@@ -72,13 +72,13 @@
 
 ## 実装アプローチ
 1. 参照実装の`GroupChat`構造を分析
-2. `Order`ドメインに置き換えた最小限の実装を生成
+2. `Cart`ドメインに置き換えた最小限の実装を生成
 3. 各層（Domain, Processor, Interface Adaptor）の依存関係を正しく構築
 4. テストコードも合わせて生成し、実行可能な状態を保つ
 
 ## 影響範囲
 - **新規ファイル作成**: 約30-40ファイル
-- **既存ファイル変更**: `modules/bootstrap/src/index.ts` にOrderリゾルバを追加
+- **既存ファイル変更**: `modules/bootstrap/src/index.ts` にCartリゾルバを追加
 - **依存関係**: 既存のcatalog設定済み依存関係のみ使用
 - **破壊的変更**: なし
 
@@ -104,7 +104,7 @@
 - [ ] `pnpm build` が成功する
 - [ ] `pnpm test` が成功する（生成されたテストが実行される）
 - [ ] `pnpm lint` が成功する
-- [ ] OrderアグリゲートのCRUD操作が実装されている
+- [ ] CartアグリゲートのCRUD操作が実装されている
 - [ ] GraphQL Mutation/Queryが動作する
 - [ ] Read Model Updaterがイベントを処理できる
 

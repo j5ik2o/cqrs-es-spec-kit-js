@@ -7,27 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Orders {
+model Carts {
   id        String       @id @db.VarChar(64)
   deleted   Boolean
   name      String       @db.VarChar(200)
   createdAt DateTime     @db.DateTime(0) @map("created_at")
   updatedAt DateTime     @db.DateTime(0) @map("updated_at")
-  items     OrderItems[]
+  items     CartItems[]
 
-  @@map("orders")
+  @@map("carts")
 }
 
-model OrderItems {
+model CartItems {
   id        String   @id @db.VarChar(64)
-  orderId   String   @db.VarChar(64) @map("order_id")
+  cartId    String   @db.VarChar(64) @map("cart_id")
   name      String   @db.VarChar(200)
   quantity  Int
   price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @db.DateTime(0) @map("created_at")
   updatedAt DateTime @db.DateTime(0) @map("updated_at")
-  orders    Orders   @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_items_ibfk_1")
+  carts     Carts    @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cart_items_ibfk_1")
 
-  @@index([orderId], map: "order_id")
-  @@map("order_items")
+  @@index([cartId], map: "cart_id")
+  @@map("cart_items")
 }
