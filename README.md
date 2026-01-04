@@ -59,6 +59,10 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 | **Docker** | Container runtime |
 | **Git** | Version control |
 
+Please refer to the setup guides:
+- [Nix setup](docs/NIX_SETUP.md)
+- [direnv setup](docs/DIRENV_SETUP.md)
+
 #### Supported OS
 
 - macOS / Linux: works as-is
@@ -88,6 +92,8 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
    # Enter development environment (includes Node.js, pnpm, Docker tools, AWS CLI, jq, curl)
    nix develop
+   # or
+   # direnv allow
 
    # Install dependencies
    pnpm install

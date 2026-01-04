@@ -59,6 +59,10 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 | **Docker** | コンテナランタイム |
 | **Git** | バージョン管理 |
 
+セットアップ手順は以下を参照してください:
+- [Nix セットアップ](docs/NIX_SETUP.ja.md)
+- [direnv セットアップ](docs/DIRENV_SETUP.ja.md)
+
 #### 対応OS
 
 - macOS / Linux: そのまま利用可能
@@ -88,6 +92,8 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 
    # 開発環境に入る（Node.js、pnpm、Docker ツール、AWS CLI、jq、curl が含まれます）
    nix develop
+   # もしくは
+   # direnv allow
 
    # 依存関係をインストール
    pnpm install
