@@ -1,19 +1,19 @@
-# Order GraphQL API Capability
+# Cart GraphQL API Capability
 
 ## ADDED Requirements
 
-### Requirement: Order作成Mutation
-GraphQL APIを通じて新しい注文を作成できなければならない（MUST）。
+### Requirement: Cart作成Mutation
+GraphQL APIを通じて新しいカートを作成できなければならない（MUST）。
 
-#### Scenario: 正常な注文作成リクエスト
+#### Scenario: 正常なカート作成リクエスト
 **Given**:
 - GraphQL APIサーバーが起動している
-- 有効なCreateOrderInput（name: "Test Order"）が与えられる
+- 有効なCreateCartInput（name: "Test Cart"）が与えられる
 
 **When**:
 ```graphql
 mutation {
-  createOrder(input: { name: "Test Order" }) {
+  createCart(input: { name: "Test Cart" }) {
     id
     name
     items {
@@ -26,24 +26,24 @@ mutation {
 
 **Then**:
 - HTTPステータス 200 が返される
-- レスポンスに新しいOrderのIDとnameが含まれる
+- レスポンスに新しいCartのIDとnameが含まれる
 - itemsは空配列である
 
 ---
 
-### Requirement: OrderItemAdded追加Mutation
-GraphQL APIを通じて注文にアイテムを追加できなければならない（MUST）。
+### Requirement: CartItemAdded追加Mutation
+GraphQL APIを通じてカートにアイテムを追加できなければならない（MUST）。
 
 #### Scenario: 正常なアイテム追加リクエスト
 **Given**:
-- 既存の注文IDが存在する
-- 有効なAddOrderItemInput（itemName, quantity, price）が与えられる
+- 既存のカートIDが存在する
+- 有効なAddItemToCartInput（itemName, quantity, price）が与えられる
 
 **When**:
 ```graphql
 mutation {
-  addOrderItem(input: {
-    orderId: "<order-id>",
+  addItemToCart(input: {
+    cartId: "<cart-id>",
     itemName: "Product A",
     quantity: 2,
     price: 1000
@@ -66,17 +66,17 @@ mutation {
 
 ---
 
-### Requirement: Order取得Query
-GraphQL APIを通じて注文情報を取得できなければならない（MUST）。
+### Requirement: Cart取得Query
+GraphQL APIを通じてカート情報を取得できなければならない（MUST）。
 
-#### Scenario: IDによる注文取得
+#### Scenario: IDによるカート取得
 **Given**:
-- 既存の注文IDが存在する
+- 既存のカートIDが存在する
 
 **When**:
 ```graphql
 query {
-  order(id: "<order-id>") {
+  getCart(cartId: "<cart-id>") {
     id
     name
     items {
@@ -91,15 +91,15 @@ query {
 
 **Then**:
 - HTTPステータス 200 が返される
-- 指定されたIDの注文情報が返される
+- 指定されたIDのカート情報が返される
 - 関連するアイテム情報も含まれる
 
-#### Scenario: 存在しない注文IDの取得
+#### Scenario: 存在しないカートIDの取得
 **Given**:
-- 存在しない注文IDが指定される
+- 存在しないカートIDが指定される
 
 **When**:
-- `order(id: "non-existent-id")` クエリを実行する
+- `getCart(cartId: "non-existent-id")` クエリを実行する
 
 **Then**:
 - HTTPステータス 200 が返される
@@ -107,17 +107,17 @@ query {
 
 ---
 
-### Requirement: 全注文一覧取得Query
-GraphQL APIを通じて全注文のリストを取得できなければならない（MUST）。
+### Requirement: 全カート一覧取得Query
+GraphQL APIを通じて全カートのリストを取得できなければならない（MUST）。
 
-#### Scenario: 全注文の取得
+#### Scenario: 全カートの取得
 **Given**:
-- 複数の注文が存在する
+- 複数のカートが存在する
 
 **When**:
 ```graphql
 query {
-  orders {
+  getCarts {
     id
     name
     createdAt
@@ -127,5 +127,5 @@ query {
 
 **Then**:
 - HTTPステータス 200 が返される
-- 全注文の配列が返される
-- 各注文に基本情報（id, name, createdAt）が含まれる
+- 全カートの配列が返される
+- 各カートに基本情報（id, name, createdAt）が含まれる

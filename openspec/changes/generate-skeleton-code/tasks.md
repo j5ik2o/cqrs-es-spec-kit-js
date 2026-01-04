@@ -2,16 +2,16 @@
 
 ## Phase 1: Domain層の基礎構築
 
-### Task 1.1: Order値オブジェクトの作成
+### Task 1.1: Cart値オブジェクトの作成
 **ファイル**:
-- `modules/command/domain/src/order/order-id.ts`
-- `modules/command/domain/src/order/order-name.ts`
-- `modules/command/domain/src/order/order-item-id.ts`
+- `modules/command/domain/src/cart/cart-id.ts`
+- `modules/command/domain/src/cart/cart-name.ts`
+- `modules/command/domain/src/cart/cart-item-id.ts`
 
 **内容**:
-- ULIDベースのOrderId実装
-- 不変なOrderName値オブジェクト
-- OrderItemId値オブジェクト
+- ULIDベースのCartId実装
+- 不変なCartName値オブジェクト
+- CartItemId値オブジェクト
 
 **検証**:
 - TypeScriptコンパイルが成功
@@ -21,14 +21,14 @@
 
 ---
 
-### Task 1.2: OrderItemエンティティの作成
+### Task 1.2: CartItemエンティティの作成
 **ファイル**:
-- `modules/command/domain/src/order/order-item.ts`
-- `modules/command/domain/src/order/order-items.ts`
+- `modules/command/domain/src/cart/cart-item.ts`
+- `modules/command/domain/src/cart/cart-items.ts`
 
 **内容**:
-- OrderItemエンティティ（ID, 名前, 数量, 価格）
-- OrderItemsコレクション（追加、削除、検索メソッド）
+- CartItemエンティティ（ID, 名前, 数量, 価格）
+- CartItemsコレクション（追加、削除、検索メソッド）
 
 **検証**:
 - コレクション操作のユニットテストが通過
@@ -39,11 +39,11 @@
 
 ### Task 1.3: ドメインイベントの定義
 **ファイル**:
-- `modules/command/domain/src/order/order-events.ts`
-- `modules/command/domain/src/order/order-errors.ts`
+- `modules/command/domain/src/cart/cart-events.ts`
+- `modules/command/domain/src/cart/cart-errors.ts`
 
 **内容**:
-- `OrderCreated`, `OrderItemAdded`, `OrderItemRemoved`, `OrderDeleted` イベント
+- `CartCreated`, `CartItemAdded`, `CartItemRemoved`, `CartDeleted` イベント
 - 各コマンドに対応するエラー型
 
 **検証**:
@@ -54,10 +54,10 @@
 
 ---
 
-### Task 1.4: Orderアグリゲートルートの実装
+### Task 1.4: Cartアグリゲートルートの実装
 **ファイル**:
-- `modules/command/domain/src/order/order.ts`
-- `modules/command/domain/src/order/index.ts`
+- `modules/command/domain/src/cart/cart.ts`
+- `modules/command/domain/src/cart/index.ts`
 
 **内容**:
 - Aggregateインターフェース実装
@@ -75,9 +75,9 @@
 
 ## Phase 2: Command層の実装
 
-### Task 2.1: OrderRepositoryインターフェースの定義
+### Task 2.1: CartRepositoryインターフェースの定義
 **ファイル**:
-- `modules/command/interface-adaptor-if/src/order-repository.ts`
+- `modules/command/interface-adaptor-if/src/cart-repository.ts`
 - `modules/command/interface-adaptor-if/src/index.ts`
 
 **内容**:
@@ -91,14 +91,14 @@
 
 ---
 
-### Task 2.2: OrderCommandProcessorの実装
+### Task 2.2: CartCommandProcessorの実装
 **ファイル**:
-- `modules/command/processor/src/order-command-processor.ts`
+- `modules/command/processor/src/cart-command-processor.ts`
 - `modules/command/processor/src/index.ts`
 
 **内容**:
 - リポジトリを使ったコマンド実行ロジック
-- `createOrder`, `addOrderItem`, `removeOrderItem`, `deleteOrder` メソッド
+- `createCart`, `addItemToCart`, `removeItemFromCart`, `deleteCart` メソッド
 
 **検証**:
 - インメモリリポジトリでのユニットテストが通過
@@ -109,9 +109,9 @@
 
 ### Task 2.3: GraphQL Mutation実装
 **ファイル**:
-- `modules/command/interface-adaptor-impl/src/resolvers/order-mutation-resolver.ts`
-- `modules/command/interface-adaptor-impl/src/inputs/create-order-input.ts`
-- `modules/command/interface-adaptor-impl/src/inputs/add-order-item-input.ts`
+- `modules/command/interface-adaptor-impl/src/resolvers/cart-command-resolver.ts`
+- `modules/command/interface-adaptor-impl/src/inputs/create-cart-input.ts`
+- `modules/command/interface-adaptor-impl/src/inputs/add-cart-item-input.ts`
 
 **内容**:
 - TypeGraphQLデコレータ付きリゾルバ
@@ -130,10 +130,10 @@
 
 ### Task 3.1: Prismaスキーマ定義
 **ファイル**:
-- `modules/query/interface-adaptor/prisma/schema.prisma` (Order, OrderItemテーブル追加)
+- `modules/query/interface-adaptor/prisma/schema.prisma` (Cart, CartItemテーブル追加)
 
 **内容**:
-- Order, OrderItemモデル定義
+- Cart, CartItemモデル定義
 - リレーション設定
 
 **検証**:
@@ -146,7 +146,7 @@
 
 ### Task 3.2: GraphQL Query実装
 **ファイル**:
-- `modules/query/interface-adaptor/src/resolvers/order-query-resolver.ts`
+- `modules/query/interface-adaptor/src/resolvers/cart-query-resolver.ts`
 - `modules/query/interface-adaptor/src/index.ts`
 
 **内容**:
@@ -163,13 +163,13 @@
 
 ## Phase 4: Read Model Updater
 
-### Task 4.1: Orderイベントハンドラの実装
+### Task 4.1: Cartイベントハンドラの実装
 **ファイル**:
-- `modules/rmu/src/order-event-handler.ts`
+- `modules/rmu/src/cart-event-handler.ts`
 - `modules/rmu/src/index.ts`
 
 **内容**:
-- `OrderCreated`, `OrderItemAdded` 等のイベントハンドラ
+- `CartCreated`, `CartItemAdded` 等のイベントハンドラ
 - PrismaClientを使ったRead Model更新
 
 **検証**:
@@ -187,7 +187,7 @@
 - `modules/bootstrap/src/index.ts` (既存ファイル更新)
 
 **内容**:
-- OrderMutationResolver, OrderQueryResolverをApolloServerに登録
+- CartCommandResolver, CartQueryResolverをApolloServerに登録
 
 **検証**:
 - `pnpm start` でサーバーが起動
@@ -201,7 +201,7 @@
 
 ### Task 6.1: E2Eテストの追加
 **ファイル**:
-- `modules/bootstrap/src/order.test.ts`
+- `modules/bootstrap/src/cart.test.ts`
 
 **内容**:
 - GraphQL Mutation/Queryの統合テスト
@@ -238,6 +238,6 @@
 - [ ] 全タスク完了後、`pnpm build` が成功
 - [ ] 全タスク完了後、`pnpm test` が成功
 - [ ] 全タスク完了後、`pnpm lint` が成功
-- [ ] GraphQL Playgroundで実際にOrder作成→クエリ→アイテム追加が動作
+- [ ] GraphQL Playgroundで実際にCart作成→クエリ→アイテム追加が動作
 - [ ] イベントストアにイベントが正しく保存される
 - [ ] Read Modelが正しく更新される

@@ -1,11 +1,12 @@
 const dynamoConstructor = jest.fn();
 const streamsConstructor = jest.fn();
-const sendDynamo = jest.fn(async () => ({
+const defaultSendDynamoImpl = async (): Promise<{ Table?: { LatestStreamArn?: string } }> => ({
   Table: {
     LatestStreamArn: "arn:stream",
   },
-}));
-const sendStreams = jest.fn(async (command) => {
+});
+const sendDynamo = jest.fn(defaultSendDynamoImpl);
+const defaultSendStreamsImpl = async (command: { constructor: { name: string } }): Promise<any> => {
   const name = command.constructor.name;
   if (name === "DescribeStreamCommand") {
     return {
@@ -53,7 +54,8 @@ const sendStreams = jest.fn(async (command) => {
     };
   }
   throw new Error(`Unexpected command: ${name}`);
-});
+};
+const sendStreams = jest.fn(defaultSendStreamsImpl);
 
 class DynamoDBClient {
   public send = sendDynamo;
@@ -94,8 +96,9 @@ jest.mock("@aws-sdk/client-dynamodb-streams", () => ({
   GetRecordsCommand,
 }));
 
+const prismaOn = jest.fn();
 const prismaConstructor = jest.fn().mockImplementation(() => ({
-  $on: jest.fn(),
+  $on: prismaOn,
 }));
 
 jest.mock("@prisma/client", () => ({
@@ -103,11 +106,11 @@ jest.mock("@prisma/client", () => ({
 }));
 
 const updateReadModel = jest.fn().mockResolvedValue(undefined);
-const orderDaoOf = jest.fn().mockReturnValue({});
+const cartDaoOf = jest.fn().mockReturnValue({});
 const readModelUpdaterOf = jest.fn().mockReturnValue({ updateReadModel });
 
 jest.mock("cqrs-es-spec-kit-js-rmu", () => ({
-  OrderDao: { of: orderDaoOf },
+  CartDao: { of: cartDaoOf },
   ReadModelUpdater: { of: readModelUpdaterOf },
 }));
 
@@ -119,6 +122,8 @@ describe("localRmuMain", () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     jest.clearAllMocks();
+    sendDynamo.mockImplementation(defaultSendDynamoImpl);
+    sendStreams.mockImplementation(defaultSendStreamsImpl);
   });
 
   afterAll(() => {
@@ -158,5 +163,74 @@ describe("localRmuMain", () => {
       },
     });
     expect(updateReadModel).toHaveBeenCalledTimes(1);
+    expect(prismaOn).toHaveBeenCalledTimes(1);
+    const queryCallback = prismaOn.mock.calls[0][1];
+    await queryCallback({ query: "SELECT 1", params: "[]", duration: 1 });
+  });
+
+  it("uses default clients when credentials are not provided", async () => {
+    process.env.DATABASE_URL = "postgres://localhost";
+    process.env.STREAM_MAX_ITEM_COUNT = "1";
+
+    await localRmuMain({ maxIterations: 1 });
+
+    expect(dynamoConstructor.mock.calls[0]?.[0]).toBeUndefined();
+    expect(streamsConstructor.mock.calls[0]?.[0]).toBeUndefined();
+  });
+
+  it("handles missing stream ARN without throwing", async () => {
+    process.env.DATABASE_URL = "postgres://localhost";
+    process.env.STREAM_MAX_ITEM_COUNT = "1";
+    sendDynamo.mockResolvedValueOnce({ Table: {} });
+
+    await expect(localRmuMain({ maxIterations: 1 })).resolves.toBeUndefined();
+
+    expect(updateReadModel).not.toHaveBeenCalled();
+  });
+
+  it("handles record without keys", async () => {
+    process.env.DATABASE_URL = "postgres://localhost";
+    process.env.STREAM_MAX_ITEM_COUNT = "1";
+    sendStreams.mockImplementation(async (command) => {
+      const name = command.constructor.name;
+      if (name === "DescribeStreamCommand") {
+        return {
+          StreamDescription: {
+            Shards: [{ ShardId: "shard-1" }],
+          },
+        };
+      }
+      if (name === "GetShardIteratorCommand") {
+        return { ShardIterator: "iterator" };
+      }
+      if (name === "GetRecordsCommand") {
+        return {
+          Records: [
+            {
+              awsRegion: "ap-northeast-1",
+              dynamodb: {
+                ApproximateCreationDateTime: new Date(),
+                NewImage: {
+                  s: { S: "value" },
+                },
+                SequenceNumber: "1",
+                SizeBytes: 1,
+                StreamViewType: "NEW_IMAGE",
+              },
+              eventID: "1",
+              eventName: "INSERT",
+              eventSource: "aws:dynamodb",
+              eventVersion: "1.0",
+            },
+          ],
+          NextShardIterator: "next",
+        };
+      }
+      throw new Error(`Unexpected command: ${name}`);
+    });
+
+    await expect(localRmuMain({ maxIterations: 1 })).resolves.toBeUndefined();
+
+    expect(updateReadModel).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 import { Field, InputType } from "type-graphql";
 
 @InputType()
-class CreateOrderInput {
+class CreateCartInput {
   @Field()
   name!: string;
 
@@ -10,9 +10,9 @@ class CreateOrderInput {
 }
 
 @InputType()
-class AddItemInput {
+class AddItemToCartInput {
   @Field()
-  orderId!: string;
+  cartId!: string;
 
   @Field()
   name!: string;
@@ -28,9 +28,9 @@ class AddItemInput {
 }
 
 @InputType()
-class RemoveItemInput {
+class RemoveItemFromCartInput {
   @Field()
-  orderId!: string;
+  cartId!: string;
 
   @Field()
   itemId!: string;
@@ -40,12 +40,12 @@ class RemoveItemInput {
 }
 
 @InputType()
-class DeleteOrderInput {
+class DeleteCartInput {
   @Field()
-  orderId!: string;
+  cartId!: string;
 
   @Field()
   executorId!: string;
 }
 
-export { CreateOrderInput, AddItemInput, RemoveItemInput, DeleteOrderInput };
+export { CreateCartInput, AddItemToCartInput, RemoveItemFromCartInput, DeleteCartInput };

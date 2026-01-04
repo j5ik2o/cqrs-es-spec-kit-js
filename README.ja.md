@@ -128,7 +128,7 @@ pnpm codex            # Codex を起動
 
 ### テスト
 ```bash
-pnpm verify-order     # Order ドメインの E2E テストを実行
+pnpm verify-cart     # Cart ドメインの E2E テストを実行
 pnpm test             # ユニットテストを実行
 ```
 

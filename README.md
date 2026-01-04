@@ -107,31 +107,31 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 ---
 
-## Example Implementation: Order Domain
+## Example Implementation: Cart Domain
 
-This repository includes a complete **Order domain** implementation demonstrating the full CQRS/ES stack:
+This repository includes a complete **Cart domain** implementation demonstrating the full CQRS/ES stack:
 
 ### Domain Model
 
-**Aggregate Root**: `Order` (modules/command/domain/src/order/)
-- Value Objects: `OrderId`, `OrderName`
-- Entity: `OrderItem` with `OrderItemId`, `Quantity`, `Price`
-- Domain Events: `OrderCreated`, `OrderItemAdded`, `OrderItemRemoved`, `OrderDeleted`
+**Aggregate Root**: `Cart` (modules/command/domain/src/cart/)
+- Value Objects: `CartId`, `CartName`
+- Entity: `CartItem` with `CartItemId`, `Quantity`, `Price`
+- Domain Events: `CartCreated`, `CartItemAdded`, `CartItemRemoved`, `CartDeleted`
 
 **Key Features**:
 - Event sourcing with `replay()` and `applyEvent()` methods
 - Immutable command methods returning `[newState, event]` tuples
-- Snapshot optimization via `OrderRepositoryImpl` (every 100 events)
+- Snapshot optimization via `CartRepositoryImpl` (every 100 events)
 
 ### Module Structure
 
 ```
 modules/
 ├── command/
-│   ├── domain/                      # Order aggregate and events
-│   ├── interface-adaptor-if/        # OrderRepository interface
+│   ├── domain/                      # Cart aggregate and events
+│   ├── interface-adaptor-if/        # CartRepository interface
 │   ├── interface-adaptor-impl/      # EventStore integration
-│   └── processor/                   # OrderCommandProcessor
+│   └── processor/                   # CartCommandProcessor
 ├── query/
 │   └── interface-adaptor/           # GraphQL query resolvers
 ├── rmu/
@@ -158,7 +158,7 @@ modules/
 
 3. **Run E2E tests**:
    ```bash
-   ./tools/e2e-test/verify-order.sh
+   ./tools/e2e-test/verify-cart.sh
    ```
 
 4. **View logs**:
@@ -202,7 +202,7 @@ modules/
 
 3. **Run E2E tests**:
    ```bash
-   ./tools/e2e-test/verify-order.sh
+   ./tools/e2e-test/verify-cart.sh
    ```
 
 ### Available pnpm Scripts
@@ -226,7 +226,7 @@ pnpm codex            # Launch Codex
 
 #### Testing
 ```bash
-pnpm verify-order     # Run E2E tests for Order domain
+pnpm verify-cart     # Run E2E tests for Cart domain
 pnpm test             # Run unit tests
 ```
 
@@ -247,14 +247,14 @@ pnpm prisma:generate  # Generate Prisma Client
 
 ### GraphQL API Examples
 
-**Create Order**:
+**Create Cart**:
 ```graphql
 mutation {
-  createOrder(input: {
-    name: "Sample Order"
+  createCart(input: {
+    name: "Sample Cart"
     executorId: "UserAccount-01H42K4ABWQ5V2XQEP3A48VE0Z"
   }) {
-    orderId
+    cartId
   }
 }
 ```
@@ -262,23 +262,23 @@ mutation {
 **Add Item**:
 ```graphql
 mutation {
-  addItem(input: {
-    orderId: "Order-01234567890"
+  addItemToCart(input: {
+    cartId: "Cart-01234567890"
     name: "Product A"
     quantity: 2
     price: 1000
     executorId: "UserAccount-01H42K4ABWQ5V2XQEP3A48VE0Z"
   }) {
-    orderId
+    cartId
     itemId
   }
 }
 ```
 
-**Query Order**:
+**Query Cart**:
 ```graphql
 query {
-  getOrder(orderId: "Order-01234567890") {
+  getCart(cartId: "Cart-01234567890") {
     id
     name
     deleted
@@ -808,9 +808,9 @@ All AI tools share the same underlying Kiro workflow and specifications in `.kir
 - Docker Compose environment testing
 - Event replay and snapshot recovery
 
-#### Running E2E Tests (Order Domain Example)
+#### Running E2E Tests (Cart Domain Example)
 
-The repository includes a comprehensive E2E test script for the Order domain implementation:
+The repository includes a comprehensive E2E test script for the Cart domain implementation:
 
 ```bash
 # Set up environment variables (optional, defaults shown)
@@ -819,18 +819,18 @@ export WRITE_API_SERVER_BASE_URL="http://localhost:38080"
 export READ_API_SERVER_BASE_URL="http://localhost:38082"
 
 # Run the E2E test script
-./tools/e2e-test/verify-order.sh
+./tools/e2e-test/verify-cart.sh
 ```
 
 **Test Coverage**:
-- ✅ Order creation (createOrder mutation)
+- ✅ Cart creation (createCart mutation)
 - ✅ Item addition (addItem mutation with 2 items)
-- ✅ Order retrieval (getOrder query)
-- ✅ Order list retrieval (getOrders query)
-- ✅ OrderItem retrieval (getOrderItem query)
-- ✅ OrderItem list retrieval (getOrderItems query)
-- ✅ Item removal (removeItem mutation)
-- ✅ Order deletion (deleteOrder mutation)
+- ✅ Cart retrieval (getCart query)
+- ✅ Cart list retrieval (getCarts query)
+- ✅ CartItem retrieval (getCartItem query)
+- ✅ CartItem list retrieval (getCartItems query)
+- ✅ Item removal (removeItemFromCart mutation)
+- ✅ Cart deletion (deleteCart mutation)
 - ✅ Verification of eventual consistency (read model updates)
 
 **Prerequisites**:

@@ -32,7 +32,7 @@ DDD + CQRS/イベントソーシング + クリーンアーキテクチャを前
 ### テスト
 
 - Jest を基本にパッケージ単位で実行する
-- E2E は `pnpm verify-order` で Order ドメインを検証する
+- E2E は `pnpm verify-cart` で Cart ドメインを検証する
 
 ## 開発環境
 
@@ -47,7 +47,7 @@ DDD + CQRS/イベントソーシング + クリーンアーキテクチャを前
 # build: pnpm build
 # test: pnpm test
 # lint: pnpm lint
-# e2e: pnpm verify-order
+# e2e: pnpm verify-cart
 ```
 
 ## 主要な技術的決定

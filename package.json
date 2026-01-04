@@ -11,7 +11,7 @@
     "docker-up": "./tools/docker/docker-up.sh",
     "docker-down": "./tools/docker/docker-down.sh",
     "docker-logs": "./tools/docker/docker-logs.sh",
-    "verify-order": "./tools/e2e-test/verify-order.sh",
+    "verify-cart": "./tools/e2e-test/verify-cart.sh",
     "claude": "./tools/ai-cli/run-claude.sh",
     "gemini": "./tools/ai-cli/run-gemini.sh",
     "codex": "./tools/ai-cli/run-codex.sh",

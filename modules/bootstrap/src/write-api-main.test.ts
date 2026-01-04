@@ -5,12 +5,12 @@ const apolloServerConstructor = jest.fn().mockImplementation(() => ({}));
 const dynamoConstructor = jest.fn().mockImplementation(() => ({}));
 const createCommandSchema = jest.fn().mockResolvedValue({});
 const eventStoreFactory = { ofDynamoDB: jest.fn().mockReturnValue({}) };
-const orderRepositoryImpl = {
+const cartRepositoryImpl = {
   of: jest.fn().mockReturnValue({
     withRetention: jest.fn().mockReturnValue({}),
   }),
 };
-const orderCommandProcessor = { of: jest.fn().mockReturnValue({}) };
+const cartCommandProcessor = { of: jest.fn().mockReturnValue({}) };
 
 jest.mock("@apollo/server", () => ({
   ApolloServer: apolloServerConstructor,
@@ -26,11 +26,11 @@ jest.mock("@aws-sdk/client-dynamodb", () => ({
 
 jest.mock("cqrs-es-spec-kit-js-command-interface-adaptor-impl", () => ({
   createCommandSchema,
-  OrderRepositoryImpl: orderRepositoryImpl,
+  CartRepositoryImpl: cartRepositoryImpl,
 }));
 
 jest.mock("cqrs-es-spec-kit-js-command-processor", () => ({
-  OrderCommandProcessor: orderCommandProcessor,
+  CartCommandProcessor: cartCommandProcessor,
 }));
 
 jest.mock("event-store-adapter-js", () => ({

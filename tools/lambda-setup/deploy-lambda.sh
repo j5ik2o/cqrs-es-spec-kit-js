@@ -14,7 +14,7 @@ MEMORY_SIZE=${LAMBDA_MEMORY_SIZE:-512}
 ROLE_ARN="arn:aws:iam::000000000000:role/lambda-role"
 
 # 環境変数（Lambda内で使用）
-DATABASE_URL=${DATABASE_URL:-mysql://orderdb:orderdb@mysql-local:3306/orderdb}
+DATABASE_URL=${DATABASE_URL:-mysql://cartdb:cartdb@mysql-local:3306/cartdb}
 
 LAMBDA_ZIP_PATH=${LAMBDA_ZIP_PATH:-/lambda/function.zip}
 

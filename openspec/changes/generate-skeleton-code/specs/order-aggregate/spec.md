@@ -1,121 +1,121 @@
-# Order Aggregate Capability
+# Cart Aggregate Capability
 
 ## ADDED Requirements
 
-### Requirement: Order作成機能
-システムは新しい注文を作成できなければならない（MUST）。
+### Requirement: Cart作成機能
+システムは新しいカートを作成できなければならない（MUST）。
 
-#### Scenario: 正常な注文作成
+#### Scenario: 正常なカート作成
 **Given**:
-- 有効なOrderName（"Sample Order"）が与えられる
+- 有効なCartName（"Sample Cart"）が与えられる
 
 **When**:
-- `Order.create(orderId, name, executorId)` を実行する
+- `Cart.create(cartId, name, executorId)` を実行する
 
 **Then**:
-- 新しいOrderアグリゲートが作成される
-- `OrderCreated` イベントが発行される
-- Orderのdeletedフラグはfalseである
-- OrderのItemsコレクションは空である
+- 新しいCartアグリゲートが作成される
+- `CartCreated` イベントが発行される
+- Cartのdeletedフラグはfalseである
+- CartのItemsコレクションは空である
 
 ---
 
-### Requirement: 注文アイテム追加機能
-システムは既存の注文にアイテムを追加できなければならない（MUST）。
+### Requirement: カートアイテム追加機能
+システムは既存のカートにアイテムを追加できなければならない（MUST）。
 
 #### Scenario: 正常なアイテム追加
 **Given**:
-- 削除されていないOrderアグリゲートが存在する
+- 削除されていないCartアグリゲートが存在する
 - 有効なアイテム名（"Item A"）、数量（2）、価格（1000）が与えられる
 
 **When**:
-- `order.addItem(itemId, name, quantity, price, executorId)` を実行する
+- `cart.addItem(itemId, name, quantity, price, executorId)` を実行する
 
 **Then**:
-- Orderに新しいアイテムが追加される
-- `OrderItemAdded` イベントが発行される
+- Cartに新しいアイテムが追加される
+- `CartItemAdded` イベントが発行される
 - アイテムの数量と価格が正しく保存される
 
-#### Scenario: 削除済み注文へのアイテム追加失敗
+#### Scenario: 削除済みカートへのアイテム追加失敗
 **Given**:
-- 削除されたOrderアグリゲートが存在する
+- 削除されたCartアグリゲートが存在する
 
 **When**:
-- `order.addItem(...)` を実行する
+- `cart.addItem(...)` を実行する
 
 **Then**:
-- `OrderAddItemError` が返される
-- エラーメッセージは "The order is deleted" である
+- `CartAddItemError` が返される
+- エラーメッセージは "The cart is deleted" である
 
 ---
 
-### Requirement: 注文アイテム削除機能
-システムは注文からアイテムを削除できなければならない（MUST）。
+### Requirement: カートアイテム削除機能
+システムはカートからアイテムを削除できなければならない（MUST）。
 
 #### Scenario: 正常なアイテム削除
 **Given**:
-- 削除されていないOrderアグリゲートが存在する
-- Orderに既存のアイテムが含まれる
+- 削除されていないCartアグリゲートが存在する
+- Cartに既存のアイテムが含まれる
 
 **When**:
-- `order.removeItem(itemId, executorId)` を実行する
+- `cart.removeItem(itemId, executorId)` を実行する
 
 **Then**:
-- 指定されたアイテムがOrderから削除される
-- `OrderItemRemoved` イベントが発行される
+- 指定されたアイテムがCartから削除される
+- `CartItemRemoved` イベントが発行される
 
 #### Scenario: 存在しないアイテムの削除失敗
 **Given**:
-- 削除されていないOrderアグリゲートが存在する
-- 指定されたitemIdがOrderに存在しない
+- 削除されていないCartアグリゲートが存在する
+- 指定されたitemIdがCartに存在しない
 
 **When**:
-- `order.removeItem(nonExistentId, executorId)` を実行する
+- `cart.removeItem(nonExistentId, executorId)` を実行する
 
 **Then**:
-- `OrderRemoveItemError` が返される
+- `CartRemoveItemError` が返される
 - エラーメッセージは "The item does not exist" である
 
 ---
 
-### Requirement: 注文削除機能
-システムは注文を削除（論理削除）できなければならない（MUST）。
+### Requirement: カート削除機能
+システムはカートを削除（論理削除）できなければならない（MUST）。
 
-#### Scenario: 正常な注文削除
+#### Scenario: 正常なカート削除
 **Given**:
-- 削除されていないOrderアグリゲートが存在する
+- 削除されていないCartアグリゲートが存在する
 
 **When**:
-- `order.delete(executorId)` を実行する
+- `cart.delete(executorId)` を実行する
 
 **Then**:
-- Orderのdeletedフラグがtrueになる
-- `OrderDeleted` イベントが発行される
+- Cartのdeletedフラグがtrueになる
+- `CartDeleted` イベントが発行される
 
-#### Scenario: 既に削除済みの注文の削除失敗
+#### Scenario: 既に削除済みのカートの削除失敗
 **Given**:
-- 既に削除されたOrderアグリゲートが存在する
+- 既に削除されたCartアグリゲートが存在する
 
 **When**:
-- `order.delete(executorId)` を実行する
+- `cart.delete(executorId)` を実行する
 
 **Then**:
-- `OrderDeleteError` が返される
-- エラーメッセージは "The order is already deleted" である
+- `CartDeleteError` が返される
+- エラーメッセージは "The cart is already deleted" である
 
 ---
 
 ### Requirement: イベントソーシング対応
-Orderアグリゲートはイベントから状態を再構築できなければならない（MUST）。
+Cartアグリゲートはイベントから状態を再構築できなければならない（MUST）。
 
 #### Scenario: イベントストリームからの再構築
 **Given**:
-- `OrderCreated`, `OrderItemAdded`, `OrderItemAdded` のイベントシーケンスが存在する
+- `CartCreated`, `CartItemAdded`, `CartItemAdded` のイベントシーケンスが存在する
 
 **When**:
-- イベントストリームから `Order.replay()` を実行する
+- イベントストリームから `Cart.replay()` を実行する
 
 **Then**:
-- Orderアグリゲートが正しい状態で再構築される
-- 2つのアイテムがOrderに含まれる
+- Cartアグリゲートが正しい状態で再構築される
+- 2つのアイテムがCartに含まれる
 - シーケンス番号が正しく設定される

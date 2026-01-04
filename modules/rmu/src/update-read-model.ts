@@ -1,22 +1,22 @@
 import type { DynamoDBStreamEvent } from "aws-lambda";
 import {
-  type OrderCreated,
-  OrderCreatedTypeSymbol,
-  type OrderDeleted,
-  OrderDeletedTypeSymbol,
-  type OrderItemAdded,
-  OrderItemAddedTypeSymbol,
-  type OrderItemRemoved,
-  OrderItemRemovedTypeSymbol,
-  convertJSONToOrderEvent,
+  type CartCreated,
+  CartCreatedTypeSymbol,
+  type CartDeleted,
+  CartDeletedTypeSymbol,
+  type CartItemAdded,
+  CartItemAddedTypeSymbol,
+  type CartItemRemoved,
+  CartItemRemovedTypeSymbol,
+  convertJSONToCartEvent,
 } from "cqrs-es-spec-kit-js-command-domain";
 import { type ILogObj, Logger } from "tslog";
-import type { OrderDao } from "./order-dao";
+import type { CartDao } from "./cart-dao";
 
 class ReadModelUpdater {
   private logger: Logger<ILogObj> = new Logger();
 
-  private constructor(private readonly orderDao: OrderDao) {}
+  private constructor(private readonly cartDao: CartDao) {}
 
   async updateReadModel(event: DynamoDBStreamEvent): Promise<void> {
     this.logger.info(`EVENT: \n${JSON.stringify(event, null, 2)}`);
@@ -38,42 +38,42 @@ class ReadModelUpdater {
       // Decode base64-encoded binary payload from DynamoDB Streams
       const payload = Buffer.from(base64EncodedPayload, "base64").toString("utf-8");
       const payloadJson = JSON.parse(payload);
-      const orderEvent = convertJSONToOrderEvent(payloadJson);
-      switch (orderEvent.symbol) {
-        case OrderCreatedTypeSymbol: {
-          const typedEvent = orderEvent as OrderCreated;
+      const cartEvent = convertJSONToCartEvent(payloadJson);
+      switch (cartEvent.symbol) {
+        case CartCreatedTypeSymbol: {
+          const typedEvent = cartEvent as CartCreated;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.insertOrder(typedEvent.aggregateId, typedEvent.name, new Date());
-          this.logger.debug("inserted order");
+          await this.cartDao.insertCart(typedEvent.aggregateId, typedEvent.name, new Date());
+          this.logger.debug("inserted cart");
           break;
         }
-        case OrderDeletedTypeSymbol: {
-          const typedEvent = orderEvent as OrderDeleted;
+        case CartDeletedTypeSymbol: {
+          const typedEvent = cartEvent as CartDeleted;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.deleteOrder(typedEvent.aggregateId, new Date());
-          this.logger.debug("deleted order");
+          await this.cartDao.deleteCart(typedEvent.aggregateId, new Date());
+          this.logger.debug("deleted cart");
           break;
         }
-        case OrderItemAddedTypeSymbol: {
-          const typedEvent = orderEvent as OrderItemAdded;
+        case CartItemAddedTypeSymbol: {
+          const typedEvent = cartEvent as CartItemAdded;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.insertOrderItem(typedEvent.aggregateId, typedEvent.item, new Date());
-          this.logger.debug("inserted order item");
+          await this.cartDao.insertCartItem(typedEvent.aggregateId, typedEvent.item, new Date());
+          this.logger.debug("inserted cart item");
           break;
         }
-        case OrderItemRemovedTypeSymbol: {
-          const typedEvent = orderEvent as OrderItemRemoved;
+        case CartItemRemovedTypeSymbol: {
+          const typedEvent = cartEvent as CartItemRemoved;
           this.logger.debug(`event = ${typedEvent.toString()}`);
-          await this.orderDao.deleteOrderItem(typedEvent.item.id);
-          this.logger.debug("deleted order item");
+          await this.cartDao.deleteCartItem(typedEvent.item.id);
+          this.logger.debug("deleted cart item");
           break;
         }
       }
     }
   }
 
-  static of(orderDao: OrderDao): ReadModelUpdater {
-    return new ReadModelUpdater(orderDao);
+  static of(cartDao: CartDao): ReadModelUpdater {
+    return new ReadModelUpdater(cartDao);
   }
 }
 

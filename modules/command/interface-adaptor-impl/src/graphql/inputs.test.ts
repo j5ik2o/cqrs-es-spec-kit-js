@@ -1,31 +1,36 @@
 import "reflect-metadata";
-import { AddItemInput, CreateOrderInput, DeleteOrderInput, RemoveItemInput } from "./inputs";
+import {
+  AddItemToCartInput,
+  CreateCartInput,
+  DeleteCartInput,
+  RemoveItemFromCartInput,
+} from "./inputs";
 
 describe("graphql inputs", () => {
   it("allows assigning fields", () => {
-    const createInput = new CreateOrderInput();
+    const createInput = new CreateCartInput();
     createInput.name = "sample";
     createInput.executorId = "user";
 
-    const addItem = new AddItemInput();
-    addItem.orderId = "order";
+    const addItem = new AddItemToCartInput();
+    addItem.cartId = "cart";
     addItem.name = "item";
     addItem.quantity = 1;
     addItem.price = 100;
     addItem.executorId = "user";
 
-    const removeItem = new RemoveItemInput();
-    removeItem.orderId = "order";
+    const removeItem = new RemoveItemFromCartInput();
+    removeItem.cartId = "cart";
     removeItem.itemId = "item";
     removeItem.executorId = "user";
 
-    const deleteOrder = new DeleteOrderInput();
-    deleteOrder.orderId = "order";
-    deleteOrder.executorId = "user";
+    const deleteCart = new DeleteCartInput();
+    deleteCart.cartId = "cart";
+    deleteCart.executorId = "user";
 
     expect(createInput.name).toBe("sample");
     expect(addItem.quantity).toBe(1);
     expect(removeItem.itemId).toBe("item");
-    expect(deleteOrder.orderId).toBe("order");
+    expect(deleteCart.cartId).toBe("cart");
   });
 });

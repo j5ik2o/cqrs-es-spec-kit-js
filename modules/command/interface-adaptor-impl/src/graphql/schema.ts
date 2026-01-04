@@ -1,10 +1,10 @@
 import type { GraphQLSchema } from "graphql/type";
 import { buildSchema } from "type-graphql";
-import { OrderCommandResolver } from "./resolvers";
+import { CartCommandResolver } from "./resolvers";
 
 async function createCommandSchema(): Promise<GraphQLSchema> {
   return await buildSchema({
-    resolvers: [OrderCommandResolver],
+    resolvers: [CartCommandResolver],
     validate: false,
   });
 }

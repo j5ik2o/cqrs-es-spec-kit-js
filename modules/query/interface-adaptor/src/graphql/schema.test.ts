@@ -9,10 +9,10 @@ describe("createQuerySchema", () => {
     expect(queryType).toBeDefined();
     if (queryType) {
       const fields = queryType.getFields();
-      expect(fields.getOrder).toBeDefined();
-      expect(fields.getOrders).toBeDefined();
-      expect(fields.getOrderItem).toBeDefined();
-      expect(fields.getOrderItems).toBeDefined();
+      expect(fields.getCart).toBeDefined();
+      expect(fields.getCarts).toBeDefined();
+      expect(fields.getCartItem).toBeDefined();
+      expect(fields.getCartItems).toBeDefined();
     }
   });
 });

@@ -1,15 +1,15 @@
 import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
-class OrderOutput {
+class CartOutput {
   @Field()
-  orderId!: string;
+  cartId!: string;
 }
 
 @ObjectType()
-class OrderItemOutput {
+class CartItemOutput {
   @Field()
-  orderId!: string;
+  cartId!: string;
 
   @Field()
   itemId!: string;
@@ -21,4 +21,4 @@ class HealthCheckOutput {
   value!: string;
 }
 
-export { OrderOutput, OrderItemOutput, HealthCheckOutput };
+export { CartOutput, CartItemOutput, HealthCheckOutput };

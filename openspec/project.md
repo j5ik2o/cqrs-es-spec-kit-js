@@ -34,7 +34,7 @@
 
 ### Git ワークフロー
 - `main` を常にデプロイ可能な状態に保つトランクベース運用とし、変更は短命なフィーチャーブランチで開発する。
-- ブランチ名は `feature/<change-id>` 形式（例：`feature/add-order-aggregate`）を推奨する。
+- ブランチ名は `feature/<change-id>` 形式（例：`feature/add-cart-aggregate`）を推奨する。
 - コミットメッセージは Conventional Commits（`feat:`, `fix:`, `chore:` など）に従い、仕様やタスク ID を本文に明記する。
 - PR では対象の OpenSpec change-id と対応するタスクの完了チェックを必ずリンクする。
 

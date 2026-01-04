@@ -1,4 +1,4 @@
-# Order RMU LocalStack Capability
+# Cart RMU LocalStack Capability
 
 ## ADDED Requirements
 
@@ -8,68 +8,68 @@ RMUはLocalStackで起動したDynamoDB Streamsからイベントを読み取れ
 #### Scenario: DynamoDB Streamsイベント受信
 **Given**:
 - LocalStackのDynamoDB Streamsが起動している
-- OrderCreatedイベントがDynamoDBに書き込まれる
+- CartCreatedイベントがDynamoDBに書き込まれる
 
 **When**:
 - RMUがDynamoDB Streamsをポーリングする
 
 **Then**:
-- OrderCreatedイベントが正しく受信される
+- CartCreatedイベントが正しく受信される
 - イベントペイロードがパースされる
 - イベントハンドラが呼び出される
 
 ---
 
-### Requirement: OrderCreatedイベントのRead Model投影
-OrderCreatedイベントを受信したらRead Modelに反映しなければならない（MUST）。
+### Requirement: CartCreatedイベントのRead Model投影
+CartCreatedイベントを受信したらRead Modelに反映しなければならない（MUST）。
 
-#### Scenario: 正常な注文作成イベントの投影
+#### Scenario: 正常なカート作成イベントの投影
 **Given**:
-- OrderCreatedイベントが受信される
-- イベントには orderId, name, executorId が含まれる
+- CartCreatedイベントが受信される
+- イベントには cartId, name, executorId が含まれる
 
 **When**:
-- OrderCreatedイベントハンドラが実行される
+- CartCreatedイベントハンドラが実行される
 
 **Then**:
-- PrismaClientを通じてOrderテーブルに新しいレコードが挿入される
+- PrismaClientを通じてCartテーブルに新しいレコードが挿入される
 - レコードにはid, name, createdAtが正しく設定される
 - deleted フラグは false である
 
 ---
 
-### Requirement: OrderItemAddedイベントのRead Model投影
-OrderItemAddedイベントを受信したらRead Modelに反映しなければならない（MUST）。
+### Requirement: CartItemAddedイベントのRead Model投影
+CartItemAddedイベントを受信したらRead Modelに反映しなければならない（MUST）。
 
 #### Scenario: 正常なアイテム追加イベントの投影
 **Given**:
-- OrderItemAddedイベントが受信される
-- イベントには orderId, itemId, name, quantity, price が含まれる
-- 対応するOrderレコードがRead Modelに存在する
+- CartItemAddedイベントが受信される
+- イベントには cartId, itemId, name, quantity, price が含まれる
+- 対応するCartレコードがRead Modelに存在する
 
 **When**:
-- OrderItemAddedイベントハンドラが実行される
+- CartItemAddedイベントハンドラが実行される
 
 **Then**:
-- PrismaClientを通じてOrderItemテーブルに新しいレコードが挿入される
-- レコードにはorderId, itemId, name, quantity, priceが正しく設定される
-- OrderテーブルのupdatedAtが更新される
+- PrismaClientを通じてCartItemテーブルに新しいレコードが挿入される
+- レコードにはcartId, itemId, name, quantity, priceが正しく設定される
+- CartテーブルのupdatedAtが更新される
 
 ---
 
-### Requirement: OrderDeletedイベントのRead Model投影
-OrderDeletedイベントを受信したらRead Modelに反映しなければならない（MUST）。
+### Requirement: CartDeletedイベントのRead Model投影
+CartDeletedイベントを受信したらRead Modelに反映しなければならない（MUST）。
 
-#### Scenario: 正常な注文削除イベントの投影
+#### Scenario: 正常なカート削除イベントの投影
 **Given**:
-- OrderDeletedイベントが受信される
-- 対応するOrderレコードがRead Modelに存在する
+- CartDeletedイベントが受信される
+- 対応するCartレコードがRead Modelに存在する
 
 **When**:
-- OrderDeletedイベントハンドラが実行される
+- CartDeletedイベントハンドラが実行される
 
 **Then**:
-- PrismaClientを通じてOrderレコードのdeleted フラグがtrueに更新される
+- PrismaClientを通じてCartレコードのdeleted フラグがtrueに更新される
 - updatedAtが更新される
 
 ---
@@ -85,14 +85,14 @@ LocalStack環境で全体フローが動作しなければならない（MUST）
 - Read APIサーバーが起動している
 
 **When**:
-1. GraphQL MutationでOrderを作成
-2. RMUがDynamoDB StreamsからOrderCreatedイベントを受信
+1. GraphQL MutationでCartを作成
+2. RMUがDynamoDB StreamsからCartCreatedイベントを受信
 3. RMUがRead Modelを更新
-4. GraphQL QueryでOrderを取得
+4. GraphQL QueryでCartを取得
 
 **Then**:
-- Queryで作成したOrderが正しく取得できる
-- Orderの情報が一致する
+- Queryで作成したCartが正しく取得できる
+- Cartの情報が一致する
 - 全プロセスが5秒以内に完了する（最終的整合性）
 
 ---

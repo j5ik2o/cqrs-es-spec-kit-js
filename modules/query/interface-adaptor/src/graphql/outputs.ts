@@ -1,7 +1,7 @@
 import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
-class OrderQueryOutput {
+class CartQueryOutput {
   @Field()
   id!: string;
 
@@ -19,12 +19,12 @@ class OrderQueryOutput {
 }
 
 @ObjectType()
-class OrderItemQueryOutput {
+class CartItemQueryOutput {
   @Field()
   id!: string;
 
   @Field()
-  orderId!: string;
+  cartId!: string;
 
   @Field()
   name!: string;
@@ -42,4 +42,4 @@ class OrderItemQueryOutput {
   updatedAt!: Date;
 }
 
-export { OrderQueryOutput, OrderItemQueryOutput };
+export { CartQueryOutput, CartItemQueryOutput };
