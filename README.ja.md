@@ -835,19 +835,29 @@ npm install event-store-adapter-js  # ランタイム依存関係
 
 ### Codex
 
-TODO
+- 認証: すでにcodexが認証済みの前提。`pnpm setup-codex` で `~/.codex/auth.json` を `.codex/auth.json` にシンボリックリンク
+- 実行: `pnpm codex`（`./tools/ai-cli/run-codex.sh` を実行）
+- 設定: `CODEX_HOME=.codex` を指定して起動するため、リポジトリ内のスキル/設定が自動で読み込まれる
 
 ### Claude Code
 
-TODO
+- 実行: `pnpm claude`（`./tools/ai-cli/run-claude.sh` を実行）
+- 権限: `--dangerously-skip-permissions` で起動されるため、ローカル作業前提で利用する
 
 ### Cursor Agent
 
-TODO
+- 実行: `./tools/ai-cli/run-cursor.sh`（内部で `cursor-agent --force`）
+- 前提: Cursor Agent CLI をインストール済みであること
 
 ### Gemini
 
-TODO
+- 実行: `pnpm gemini`（`./tools/ai-cli/run-gemini.sh` を実行）
+- 権限: `--yolo` で起動されるため、ローカル作業前提で利用する
+
+### Gemini
+
+- 実行: `pnpm gemini`（`./tools/ai-cli/run-gemini.sh` を実行）
+- 権限: `--yolo` で起動されるため、ローカル作業前提で利用する
 
 ---
 

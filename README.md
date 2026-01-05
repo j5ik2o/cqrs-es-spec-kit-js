@@ -6,7 +6,7 @@
 
 A comprehensive template repository that combines Domain-Driven Design (DDD), CQRS/Event Sourcing patterns, and GraphQL with AI-powered specification-driven development workflows.
 
-[日本語](./README.ja.md)
+[Japanese](./README.ja.md)
 
 ---
 
@@ -833,19 +833,24 @@ npm install event-store-adapter-js  # Runtime dependency
 
 ### Codex
 
-TODO
+- Auth: run `pnpm setup-codex` to symlink `~/.codex/auth.json` into `.codex/auth.json`
+- Run: `pnpm codex` (invokes `./tools/ai-cli/run-codex.sh`)
+- Config: `CODEX_HOME=.codex` so repo-local skills/config are loaded
 
 ### Claude Code
 
-TODO
+- Run: `pnpm claude` (invokes `./tools/ai-cli/run-claude.sh`)
+- Permissions: launched with `--dangerously-skip-permissions`, intended for local use
 
 ### Cursor Agent
 
-TODO
+- Run: `./tools/ai-cli/run-cursor.sh` (invokes `cursor-agent --force`)
+- Prereq: Cursor Agent CLI must be installed
 
 ### Gemini
 
-TODO
+- Run: `pnpm gemini` (invokes `./tools/ai-cli/run-gemini.sh`)
+- Permissions: launched with `--yolo`, intended for local use
 
 ---
 
