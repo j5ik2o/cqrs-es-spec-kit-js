@@ -153,101 +153,19 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       LAMBDA_FUNCTION_NAME: read-model-updater
       LAMBDA_ZIP_PATH: /app/modules/bootstrap/dist/lambda/function.zip
+      LAMBDA_USE_S3: "true"
       DATABASE_URL: mysql://cartdb:cartdb@mysql-local:3306/cartdb
       STREAM_JOURNAL_TABLE_NAME: journal
       EVENT_BATCH_SIZE: 10
       MAX_RETRY_ATTEMPTS: 2
+    volumes:
+      - ./tools/lambda-setup:/scripts:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        apk add --no-cache aws-cli
-
-        echo "🚀 Deploying Lambda function via S3 (for large packages)..."
-
-        # Create S3 bucket for Lambda code
-        aws s3 mb s3://lambda-code --endpoint-url http://localstack:4566 --region ap-northeast-1 2>/dev/null || true
-
-        # Upload Lambda zip to S3 (disable checksum for LocalStack compatibility)
-        echo "Uploading Lambda package to S3..."
-        AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED \
-        aws s3 cp /app/modules/bootstrap/dist/lambda/function.zip s3://lambda-code/function.zip \
-          --endpoint-url http://localstack:4566 \
-          --region ap-northeast-1 \
-          --no-progress
-
-        # Create or update Lambda function from S3
-        if aws lambda get-function --function-name read-model-updater --endpoint-url http://localstack:4566 --region ap-northeast-1 2>/dev/null; then
-          echo "Updating existing Lambda function..."
-          aws lambda update-function-code \
-            --function-name read-model-updater \
-            --s3-bucket lambda-code \
-            --s3-key function.zip \
-            --endpoint-url http://localstack:4566 \
-            --region ap-northeast-1
-        else
-          echo "Creating new Lambda function..."
-          aws lambda create-function \
-            --function-name read-model-updater \
-            --runtime nodejs18.x \
-            --handler index.handler \
-            --role arn:aws:iam::000000000000:role/lambda-role \
-            --code S3Bucket=lambda-code,S3Key=function.zip \
-            --timeout 60 \
-            --memory-size 512 \
-            --environment "Variables={DATABASE_URL=mysql://cartdb:cartdb@mysql-local:3306/cartdb}" \
-            --endpoint-url http://localstack:4566 \
-            --region ap-northeast-1
-        fi
-
-        echo "🔗 Creating Event Source Mapping..."
-
-        # Wait for DynamoDB Stream to be available
-        for i in 1 2 3 4 5; do
-          STREAM_ARN=$$(aws dynamodb describe-table \
-            --table-name journal \
-            --endpoint-url http://localstack:4566 \
-            --region ap-northeast-1 \
-            --query 'Table.LatestStreamArn' \
-            --output text 2>/dev/null)
-
-          if [ -n "$$STREAM_ARN" ] && [ "$$STREAM_ARN" != "None" ]; then
-            break
-          fi
-          echo "Waiting for DynamoDB Stream... (attempt $$i)"
-          sleep 2
-        done
-
-        echo "Stream ARN: $$STREAM_ARN"
-
-        # Validate Stream ARN
-        if [ -z "$$STREAM_ARN" ] || [ "$$STREAM_ARN" = "None" ]; then
-          echo "ERROR: DynamoDB Stream ARN not found!"
-          exit 1
-        fi
-
-        # Check if Event Source Mapping already exists
-        EXISTING_MAPPINGS=$$(aws lambda list-event-source-mappings \
-          --function-name read-model-updater \
-          --endpoint-url http://localstack:4566 \
-          --region ap-northeast-1 \
-          --query 'EventSourceMappings[?EventSourceArn==`'"$$STREAM_ARN"'`].UUID' \
-          --output text 2>/dev/null)
-
-        if [ -n "$$EXISTING_MAPPINGS" ]; then
-          echo "Event Source Mapping already exists: $$EXISTING_MAPPINGS"
-        else
-          echo "Creating new Event Source Mapping..."
-          aws lambda create-event-source-mapping \
-            --function-name read-model-updater \
-            --event-source-arn "$$STREAM_ARN" \
-            --starting-position LATEST \
-            --batch-size 10 \
-            --maximum-retry-attempts 2 \
-            --endpoint-url http://localstack:4566 \
-            --region ap-northeast-1
-        fi
-
-        echo "✅ Lambda setup completed successfully"
+        apk add --no-cache aws-cli bash
+        /scripts/deploy-lambda.sh
+        /scripts/create-event-mapping.sh
     depends_on:
       localstack:
         condition: service_healthy

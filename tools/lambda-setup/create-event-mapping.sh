@@ -17,14 +17,25 @@ echo "  Table Name: $TABLE_NAME"
 echo "  Batch Size: $BATCH_SIZE"
 echo "  Max Retry Attempts: $MAX_RETRY_ATTEMPTS"
 
-# DynamoDB StreamのARNを取得
+# DynamoDB StreamのARNを取得（リトライ付き）
 echo "Getting DynamoDB Stream ARN..."
-STREAM_ARN=$(aws dynamodb describe-table \
-  --table-name "$TABLE_NAME" \
-  --endpoint-url "$ENDPOINT_URL" \
-  --region "$AWS_REGION" \
-  --query 'Table.LatestStreamArn' \
-  --output text)
+MAX_RETRIES=${STREAM_WAIT_RETRIES:-5}
+RETRY_INTERVAL=${STREAM_WAIT_INTERVAL:-2}
+
+for i in $(seq 1 $MAX_RETRIES); do
+  STREAM_ARN=$(aws dynamodb describe-table \
+    --table-name "$TABLE_NAME" \
+    --endpoint-url "$ENDPOINT_URL" \
+    --region "$AWS_REGION" \
+    --query 'Table.LatestStreamArn' \
+    --output text 2>/dev/null || echo "")
+
+  if [ -n "$STREAM_ARN" ] && [ "$STREAM_ARN" != "None" ]; then
+    break
+  fi
+  echo "Waiting for DynamoDB Stream... (attempt $i/$MAX_RETRIES)"
+  sleep "$RETRY_INTERVAL"
+done
 
 if [ -z "$STREAM_ARN" ] || [ "$STREAM_ARN" = "None" ]; then
   echo "❌ Error: DynamoDB Stream ARN not found for table $TABLE_NAME"
