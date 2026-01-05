@@ -17,7 +17,7 @@
 - **ドメイン駆動設計（DDD）**: 集約モデリングと境界づけられたコンテキストのための戦術的パターン
 - **CQRS/イベントソーシング**: 書き込みモデルと読み取りモデルの完全分離によるイベント駆動アーキテクチャ
 - **GraphQL**: コマンド（ミューテーション）とクエリの両方に対応した型安全な API レイヤー
-- **AI 駆動仕様**: AI ツール（Claude Code、Gemini、Codex）を活用した Kiro スタイルの体系的な機能開発ワークフロー
+- **AI 駆動仕様**: AI ツール（Codex, Claude Code, Cursor Agent, Gemini）を活用した Kiro スタイルの体系的な機能開発ワークフロー
 
 このテンプレートは、**DDD/CQRS/ES の基礎を理解している開発者** で、実績のある実装パターンと AI 支援開発ワークフローを求めている方を対象としています。
 
@@ -35,7 +35,7 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 
 ### AI 駆動開発
 - ✅ **Kiro ワークフロー**: 仕様 → 設計 → 実装の構造化されたフェーズ
-- ✅ **マルチ AI サポート**: Claude Code、Gemini、Codex に対応
+- ✅ **マルチ AI サポート**: Codex, Claude Code, Cursor Agent, Gemini に対応
 - ✅ **プロジェクトメモリ**: `.kiro/steering/` による永続的なアーキテクチャ決定の管理
 - ✅ **仕様駆動**: `.kiro/specs/` による機能レベルの開発追跡
 
@@ -286,9 +286,10 @@ pnpm docker-logs      # サービスログを表示
 
 ### AI 開発ツール
 ```bash
-pnpm claude           # Claude Code を起動
-pnpm gemini           # Gemini を起動
 pnpm codex            # Codex を起動
+pnpm claude           # Claude Code を起動
+pnpm cursor           # Cursor Agent を起動
+pnpm gemini           # Gemini を起動
 ```
 
 ### テスト
@@ -640,7 +641,7 @@ Kiro 仕様駆動ワークフローは、AI 支援による体系的な機能開
 
 ### コマンドリファレンス
 
-すべてのコマンドは、Claude Code (`/kiro:*`)、Gemini、Codex で適切な設定により動作します。
+すべてのコマンドは、Codex, Claude Code, Cursor Agent, Gemini で適切な設定により動作します。
 
 #### フェーズ 0: プロジェクトステアリング（オプション）
 
@@ -777,7 +778,7 @@ cqrs-es-spec-kit-js/
 
 **重要**: `references/` ディレクトリには **AI コード読み取り専用** のサブモジュールが含まれています。これらは実行時の依存関係ではありません。
 
-- **目的**: AI ツール（Claude Code、Gemini、Codex）に具体的な実装例を提供
+- **目的**: AI ツール（Codex, Claude Code, Gemini）に具体的な実装例を提供
 - **場所**: Git サブモジュールとして含まれる
 - **使用法**: AI ツールがパターンを分析；実際の npm パッケージは `package.json` に追加
 
@@ -832,23 +833,21 @@ npm install event-store-adapter-js  # ランタイム依存関係
 
 ## AI ツール設定
 
+### Codex
+
+TODO
+
 ### Claude Code
 
-- **コマンド**: `/kiro:*` 名前空間（例: `/kiro:spec-init`、`/kiro:spec-impl`）
-- **設定**: プロジェクト固有の指示については `CLAUDE.md` を参照
-- **統合**: `.kiro/steering/` の自動ロード
+TODO
+
+### Cursor Agent
+
+TODO
 
 ### Gemini
 
-- **コマンド**: `GEMINI.md` 設定による同じ `/kiro:*` 名前空間
-- **プロンプト**: `.gemini/` ディレクトリのカスタムプロンプト
-
-### Codex
-
-- **コマンド**: `.codex/` ディレクトリによる同じ `/kiro:*` 名前空間
-- **ワークフロー**: Cursor ベースのワークフロー統合
-
-すべての AI ツールは、`.kiro/` 内の同じ基礎となる Kiro ワークフローと仕様を共有します。
+TODO
 
 ---
 
