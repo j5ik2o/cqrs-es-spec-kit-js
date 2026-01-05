@@ -17,7 +17,7 @@ A comprehensive template repository that combines Domain-Driven Design (DDD), CQ
 - **Domain-Driven Design (DDD)**: Tactical patterns for aggregate modeling and bounded contexts
 - **CQRS/Event Sourcing**: Complete separation of write and read models with event-driven architecture
 - **GraphQL**: Type-safe API layer for both commands (mutations) and queries
-- **AI-Driven Specification**: Kiro-style workflow leveraging AI tools (Claude Code, Gemini, Codex) for systematic feature development
+- **AI-Driven Specification**: Kiro-style workflow leveraging AI tools (Codex, Claude Code, Cursor Agent, Gemini) for systematic feature development
 
 This template is designed for **developers who understand DDD/CQRS/ES fundamentals** and are seeking proven implementation patterns and AI-assisted development workflows.
 
@@ -35,7 +35,7 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 ### AI-Powered Development
 - ✅ **Kiro Workflow**: Structured specification → design → implementation phases
-- ✅ **Multi-AI Support**: Works with Claude Code, Gemini, and Codex
+- ✅ **Multi-AI Support**: Works with Codex, Claude Code, Cursor Agent, Gemini
 - ✅ **Project Memory**: `.kiro/steering/` for persistent architectural decisions
 - ✅ **Spec-Driven**: `.kiro/specs/` for feature-level development tracking
 
@@ -72,7 +72,7 @@ Please refer to the setup guides:
 #### Knowledge Prerequisites
 
 - Basic understanding of DDD, CQRS/ES, and GraphQL
-- AI Coding Tool: Claude Code, Gemini, or Codex
+- AI Coding Tool: Codex, Claude Code, Cursor Agent, Gemini
 
 ### Installation
 
@@ -228,9 +228,10 @@ pnpm docker-logs      # View service logs
 
 #### AI Development Tools
 ```bash
-pnpm claude           # Launch Claude Code
-pnpm gemini           # Launch Gemini
 pnpm codex            # Launch Codex
+pnpm claude           # Launch Claude Code
+pnpm cursor           # Launch Cursor Agent
+pnpm gemini           # Launch Gemini
 ```
 
 #### Testing
@@ -638,7 +639,7 @@ Phase 2: Implementation
 
 ### Commands Reference
 
-All commands work with Claude Code (`/kiro:*`), Gemini, and Codex with appropriate configuration.
+All commands work with Codex, Claude Code, Cursor Agent, Gemini with appropriate configuration.
 
 #### Phase 0: Project Steering (Optional)
 
@@ -775,7 +776,7 @@ A complete working implementation demonstrating all patterns:
 
 **Important**: The `references/` directory contains submodules for **AI code reading only**. These are not runtime dependencies.
 
-- **Purpose**: Provide AI tools (Claude Code, Gemini, Codex) with concrete implementation examples
+- **Purpose**: Provide AI tools (Codex, Claude Code, Cursor Agent, Gemini) with concrete implementation examples
 - **Location**: Included as Git submodules
 - **Usage**: AI tools analyze these for patterns; you add actual npm packages to `package.json`
 
@@ -830,23 +831,21 @@ npm install event-store-adapter-js  # Runtime dependency
 
 ## AI Tool Configuration
 
+### Codex
+
+TODO
+
 ### Claude Code
 
-- **Commands**: `/kiro:*` namespace (e.g., `/kiro:spec-init`, `/kiro:spec-impl`)
-- **Configuration**: See `CLAUDE.md` for project-specific instructions
-- **Integration**: Automatic `.kiro/steering/` loading
+TODO
+
+### Cursor Agent
+
+TODO
 
 ### Gemini
 
-- **Commands**: Same `/kiro:*` namespace via `GEMINI.md` configuration
-- **Prompts**: Custom prompts in `.gemini/` directory
-
-### Codex
-
-- **Commands**: Same `/kiro:*` namespace via `.codex/` directory
-- **Workflow**: Cursor-based workflow integration
-
-All AI tools share the same underlying Kiro workflow and specifications in `.kiro/`.
+TODO
 
 ---
 
