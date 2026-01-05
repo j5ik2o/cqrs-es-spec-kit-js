@@ -142,10 +142,13 @@ modules/
 │   └── interface-adaptor/           # GraphQL query resolvers
 ├── rmu/
 │   └── src/                         # Read model updater (Prisma)
+├── infrastructure/                  # Shared infrastructure utilities
 └── bootstrap/
-    ├── write-api-main.ts            # Command API server
-    ├── read-api-main.ts             # Query API server
-    └── local-rmu-main.ts            # LocalStack RMU
+    └── src/
+        ├── write-api-main.ts        # Command API server
+        ├── read-api-main.ts         # Query API server
+        ├── local-rmu-main.ts        # Local RMU (for development)
+        └── lambda-rmu-handler.ts    # Lambda-based RMU (for Docker/production)
 ```
 
 ### Running the Example
@@ -180,7 +183,7 @@ modules/
 **Services Available**:
 - Write API: http://localhost:38080
 - Read API: http://localhost:38082
-- Read Model Updater: http://localhost:38081
+- Read Model Updater: Lambda-based (runs automatically via DynamoDB Streams)
 - DynamoDB Admin: http://localhost:38003
 - phpMyAdmin: http://localhost:24040
 
@@ -188,7 +191,7 @@ modules/
 
 1. **Start infrastructure**:
    ```bash
-   docker-compose up -d mysql localstack dynamodb-setup dynamodb-admin phpmyadmin migration
+   docker-compose up -d mysql localstack dynamodb-setup dynamodb-admin phpmyadmin migration lambda-setup
    ```
 
 2. **Build and start servers**:
@@ -202,8 +205,8 @@ modules/
    # Terminal 2: Read API (port 38082)
    node modules/bootstrap/dist/index.js readApi
 
-   # Terminal 3: Read Model Updater
-   node modules/bootstrap/dist/index.js localRmu
+   # Note: Read Model Updater runs as Lambda function triggered by DynamoDB Streams
+   # (started via lambda-setup in docker-compose)
    ```
 
 3. **Run E2E tests**:
@@ -240,9 +243,7 @@ pnpm test             # Run unit tests
 ```bash
 pnpm build            # Build all packages
 pnpm lint             # Run linter
-pnpm lint:fix         # Auto-fix linting issues
 pnpm format           # Check code formatting
-pnpm format:fix       # Auto-format code
 pnpm clean            # Remove build artifacts
 ```
 
@@ -326,7 +327,7 @@ This implementation demonstrates:
   ┌─────────────┐         ┌─────────────┐        ┌─────────────┐
   │  Event      │         │  Event      │        │  Read Model │
   │  Store      │────────▶│  Stream     │        │  Database   │
-  │ (DynamoDB)  │         │ (DynamoDB)  │        │ (PostgreSQL)│
+  │ (DynamoDB)  │         │ (DynamoDB)  │        │   (MySQL)   │
   └─────────────┘         └─────────────┘        └─────────────┘
 ```
 
@@ -335,28 +336,24 @@ This implementation demonstrates:
 Based on Clean Architecture and DDD tactical patterns:
 
 ```
-packages/
+modules/
 ├── command/                      # Write side (CQRS)
 │   ├── domain/                  # Pure domain logic
-│   │   ├── aggregates/          # Aggregate roots
-│   │   ├── entities/            # Domain entities
-│   │   ├── value-objects/       # Immutable values
-│   │   └── events/              # Domain events
-│   ├── interface-adaptor-if/    # Port definitions
-│   ├── interface-adaptor-impl/  # Adapter implementations
-│   └── processor/               # Application services
+│   │   └── src/cart/            # Cart aggregate, events, value objects
+│   ├── interface-adaptor-if/    # Port definitions (CartRepository interface)
+│   ├── interface-adaptor-impl/  # Adapter implementations (EventStore integration)
+│   └── processor/               # Application services (CartCommandProcessor)
 │
 ├── query/                        # Read side (CQRS)
-│   ├── interface-adaptor/       # GraphQL resolvers
-│   └── domain/                  # Read model DTOs
+│   └── interface-adaptor/       # GraphQL resolvers and read model DTOs
 │
 ├── rmu/                          # Read Model Updater
-│   ├── processors/              # Event handlers
-│   └── projections/             # Read model builders
+│   └── src/                     # Event handlers and projections
 │
-└── infrastructure/               # Shared infrastructure
-    ├── event-store/             # Event persistence
-    └── database/                # Read model storage
+├── infrastructure/               # Shared infrastructure utilities
+│
+└── bootstrap/                    # Application entry points
+    └── src/                     # Server startup files
 ```
 
 ---
@@ -365,198 +362,253 @@ packages/
 
 ### 1. Event-Sourced Aggregate
 
-**Domain Layer** (`packages/command/domain/`):
+**Domain Layer** (`modules/command/domain/src/cart/cart.ts`):
 
 ```typescript
-// user-account.ts
-export class UserAccount {
-  private constructor(
-    public readonly id: UserAccountId,
-    public readonly name: string,
-    public readonly sequenceNumber: number,
-    public readonly version: number
-  ) {}
+// cart.ts
+class Cart implements Aggregate<Cart, CartId> {
+  public readonly id: CartId;
+  public readonly deleted: boolean;
+  public readonly name: CartName;
+  public readonly items: CartItems;
+  public readonly sequenceNumber: number;
+  public readonly version: number;
 
-  // Factory method
-  static create(id: UserAccountId, name: string): [UserAccount, UserAccountCreated] {
-    const account = new UserAccount(id, name, 1, 1);
-    const event = new UserAccountCreated(id, name);
-    return [account, event];
+  private constructor(params: CartParams) {
+    this.id = params.id;
+    this.deleted = params.deleted;
+    this.name = params.name;
+    this.items = params.items;
+    this.sequenceNumber = params.sequenceNumber;
+    this.version = params.version;
   }
 
-  // Command method
-  rename(newName: string): [UserAccount, UserAccountRenamed] {
-    const updated = new UserAccount(
-      this.id,
-      newName,
-      this.sequenceNumber + 1,
-      this.version + 1
-    );
-    const event = new UserAccountRenamed(this.id, newName);
-    return [updated, event];
+  // Factory method
+  static create(id: CartId, name: CartName, executorId: UserAccountId): [Cart, CartCreated] {
+    const sequenceNumber = 1;
+    const cart = new Cart({
+      id,
+      deleted: false,
+      name,
+      items: CartItems.empty(),
+      sequenceNumber,
+      version: 1,
+    });
+    const event = CartCreated.of(id, name, executorId, sequenceNumber);
+    return [cart, event];
+  }
+
+  // Command method returning Either for error handling
+  addItem(item: CartItem, executorId: UserAccountId): Either<CartAddItemError, [Cart, CartItemAdded]> {
+    if (this.deleted) {
+      return E.left(CartAddItemError.of("The cart is deleted"));
+    }
+    const newItems = this.items.addItem(item);
+    const newSequenceNumber = this.sequenceNumber + 1;
+    const newCart = new Cart({ ...this, items: newItems, sequenceNumber: newSequenceNumber });
+    const event = CartItemAdded.of(this.id, item, executorId, newSequenceNumber);
+    return E.right([newCart, event]);
   }
 
   // Event replay for sourcing
-  static replay(events: UserAccountEvent[], snapshot?: UserAccount): UserAccount {
-    let account = snapshot ?? throw new Error("Initial snapshot required");
-    for (const event of events) {
-      account = account.applyEvent(event);
-    }
-    return account;
+  static replay(events: CartEvent[], snapshot: Cart): Cart {
+    return events.reduce((cart, event) => cart.applyEvent(event), snapshot);
   }
 
-  private applyEvent(event: UserAccountEvent): UserAccount {
-    if (event instanceof UserAccountRenamed) {
-      return new UserAccount(
-        this.id,
-        event.name,
-        this.sequenceNumber + 1,
-        this.version + 1
-      );
+  applyEvent(event: CartEvent): Cart {
+    switch (event.symbol) {
+      case CartItemAddedTypeSymbol:
+        return this.addItem((event as CartItemAdded).item, event.executorId).right[0];
+      case CartItemRemovedTypeSymbol:
+        return this.removeItem((event as CartItemRemoved).item.id, event.executorId).right[0];
+      case CartDeletedTypeSymbol:
+        return this.delete(event.executorId).right[0];
+      default:
+        throw new Error("Unknown event");
     }
-    return this;
   }
 }
 ```
 
 ### 2. Repository with Event Store
 
-**Repository Layer** (`packages/command/interface-adaptor-impl/`):
+**Repository Layer** (`modules/command/interface-adaptor-impl/src/repository/cart/cart-repository.ts`):
 
 ```typescript
-import { EventStore } from 'event-store-adapter-js';
+import { type EventStore, OptimisticLockError } from 'event-store-adapter-js';
+import * as TE from 'fp-ts/TaskEither';
 
-export class UserAccountRepository {
-  constructor(
-    private readonly eventStore: EventStore<
-      UserAccountId,
-      UserAccount,
-      UserAccountEvent
-    >
+type SnapshotDecider = (event: CartEvent, snapshot: Cart) => boolean;
+
+class CartRepositoryImpl implements CartRepository {
+  private constructor(
+    public readonly eventStore: EventStore<CartId, Cart, CartEvent>,
+    private readonly snapshotDecider: SnapshotDecider | undefined,
   ) {}
 
-  async storeEvent(event: UserAccountEvent, version: number): Promise<void> {
-    await this.eventStore.persistEvent(event, version);
+  store(event: CartEvent, snapshot: Cart): TE.TaskEither<RepositoryError, void> {
+    if (event.isCreated || this.snapshotDecider?.(event, snapshot)) {
+      return this.storeEventAndSnapshot(event, snapshot);
+    }
+    return this.storeEvent(event, snapshot.version);
   }
 
-  async storeEventAndSnapshot(
-    event: UserAccountEvent,
-    snapshot: UserAccount
-  ): Promise<void> {
-    await this.eventStore.persistEventAndSnapshot(event, snapshot);
+  storeEvent(event: CartEvent, version: number): TE.TaskEither<RepositoryError, void> {
+    return TE.tryCatch(
+      () => this.eventStore.persistEvent(event, version),
+      (reason) => new RepositoryError("Failed to store event", reason as Error),
+    );
   }
 
-  async findById(id: UserAccountId): Promise<UserAccount | undefined> {
-    const snapshot = await this.eventStore.getLatestSnapshotById(
-      id,
-      convertJSONToUserAccount
+  findById(id: CartId): TE.TaskEither<RepositoryError, Cart | undefined> {
+    return TE.tryCatch(
+      async () => {
+        const snapshot = await this.eventStore.getLatestSnapshotById(id);
+        if (snapshot === undefined) return undefined;
+        const events = await this.eventStore.getEventsByIdSinceSequenceNumber(
+          id, snapshot.sequenceNumber + 1
+        );
+        return Cart.replay(events, snapshot);
+      },
+      (reason) => new RepositoryError("Failed to find by id", reason as Error),
     );
+  }
 
-    if (!snapshot) return undefined;
-
-    const events = await this.eventStore.getEventsByIdSinceSequenceNumber(
-      id,
-      snapshot.sequenceNumber + 1,
-      convertJSONToUserAccountEvent
+  // Configurable snapshot strategy (e.g., every 100 events)
+  withRetention(numberOfEvents: number): CartRepository {
+    return new CartRepositoryImpl(
+      this.eventStore,
+      (event) => event.sequenceNumber % numberOfEvents === 0
     );
-
-    return UserAccount.replay(events, snapshot);
   }
 }
 ```
 
 ### 3. GraphQL Mutation (Write API)
 
-**GraphQL Resolver** (`packages/command/interface-adaptor-impl/`):
+**GraphQL Resolver** (`modules/command/interface-adaptor-impl/src/graphql/resolvers.ts`):
 
 ```typescript
-import { Resolver, Mutation, Arg } from 'type-graphql';
+import { Resolver, Mutation, Arg, Ctx } from 'type-graphql';
+import { pipe } from 'fp-ts/function';
+import * as TE from 'fp-ts/TaskEither';
 
 @Resolver()
-export class UserAccountMutationResolver {
-  constructor(private readonly repository: UserAccountRepository) {}
-
-  @Mutation(() => UserAccountPayload)
-  async createUserAccount(
-    @Arg('input') input: CreateUserAccountInput
-  ): Promise<UserAccountPayload> {
-    const id = new UserAccountId(ulid());
-    const [account, event] = UserAccount.create(id, input.name);
-
-    await this.repository.storeEventAndSnapshot(event, account);
-
-    return { userAccountId: id.value };
+class CartCommandResolver {
+  @Mutation(() => CartOutput)
+  async createCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input") input: CreateCartInput,
+  ): Promise<CartOutput> {
+    return pipe(
+      this.validateCartName(input.name),
+      TE.chainW((validatedName) =>
+        pipe(
+          this.validateUserAccountId(input.executorId),
+          TE.map((validatedExecutorId) => ({ validatedName, validatedExecutorId })),
+        ),
+      ),
+      TE.chainW(({ validatedName, validatedExecutorId }) =>
+        cartCommandProcessor.createCart(validatedName, validatedExecutorId),
+      ),
+      TE.map((cartEvent) => ({ cartId: cartEvent.aggregateId.asString() })),
+      TE.mapLeft(this.convertToError),
+      this.toTask(),
+    )();
   }
 
-  @Mutation(() => UserAccountPayload)
-  async renameUserAccount(
-    @Arg('input') input: RenameUserAccountInput
-  ): Promise<UserAccountPayload> {
-    const id = new UserAccountId(input.userAccountId);
-    const account = await this.repository.findById(id);
-
-    if (!account) throw new Error('Account not found');
-
-    const [updated, event] = account.rename(input.newName);
-    await this.repository.storeEvent(event, updated.version);
-
-    return { userAccountId: id.value };
+  @Mutation(() => CartItemOutput)
+  async addItemToCart(
+    @Ctx() { cartCommandProcessor }: CommandContext,
+    @Arg("input") input: AddItemToCartInput,
+  ): Promise<CartItemOutput> {
+    return pipe(
+      this.validateCartId(input.cartId),
+      TE.chainW((validatedCartId) =>
+        cartCommandProcessor.addItemToCart(validatedCartId, validatedItem, validatedExecutorId),
+      ),
+      TE.map((cartEvent) => ({
+        cartId: cartEvent.aggregateId.asString(),
+        itemId: validatedItem.id.asString(),
+      })),
+      TE.mapLeft(this.convertToError),
+      this.toTask(),
+    )();
   }
 }
 ```
 
 ### 4. Read Model Projection (RMU)
 
-**Event Processor** (`packages/rmu/`):
+**Event Processor** (`modules/rmu/src/update-read-model.ts`):
 
 ```typescript
-export class UserAccountProjection {
-  constructor(private readonly prisma: PrismaClient) {}
+import type { DynamoDBStreamEvent } from "aws-lambda";
+import { convertJSONToCartEvent, CartCreatedTypeSymbol, CartItemAddedTypeSymbol } from "cqrs-es-spec-kit-js-command-domain";
 
-  async handleUserAccountCreated(event: UserAccountCreated): Promise<void> {
-    await this.prisma.userAccountReadModel.create({
-      data: {
-        id: event.aggregateId.value,
-        name: event.name,
-        createdAt: event.occurredAt,
-        updatedAt: event.occurredAt,
-      },
-    });
-  }
+class ReadModelUpdater {
+  constructor(private readonly cartDao: CartDao) {}
 
-  async handleUserAccountRenamed(event: UserAccountRenamed): Promise<void> {
-    await this.prisma.userAccountReadModel.update({
-      where: { id: event.aggregateId.value },
-      data: {
-        name: event.name,
-        updatedAt: event.occurredAt,
-      },
-    });
+  async updateReadModel(event: DynamoDBStreamEvent): Promise<void> {
+    for (const record of event.Records) {
+      const payload = Buffer.from(record.dynamodb.NewImage.payload.B, "base64").toString("utf-8");
+      const cartEvent = convertJSONToCartEvent(JSON.parse(payload));
+
+      switch (cartEvent.symbol) {
+        case CartCreatedTypeSymbol: {
+          const typedEvent = cartEvent as CartCreated;
+          await this.cartDao.insertCart(typedEvent.aggregateId, typedEvent.name, new Date());
+          break;
+        }
+        case CartItemAddedTypeSymbol: {
+          const typedEvent = cartEvent as CartItemAdded;
+          await this.cartDao.insertCartItem(typedEvent.aggregateId, typedEvent.item, new Date());
+          break;
+        }
+        case CartDeletedTypeSymbol: {
+          const typedEvent = cartEvent as CartDeleted;
+          await this.cartDao.deleteCart(typedEvent.aggregateId, new Date());
+          break;
+        }
+      }
+    }
   }
 }
 ```
 
 ### 5. GraphQL Query (Read API)
 
-**Query Resolver** (`packages/query/interface-adaptor/`):
+**Query Resolver** (`modules/query/interface-adaptor/src/graphql/resolvers.ts`):
 
 ```typescript
-@Resolver()
-export class UserAccountQueryResolver {
-  constructor(private readonly prisma: PrismaClient) {}
+import type { PrismaClient } from "@prisma/client";
+import { Arg, Ctx, Query, Resolver } from "type-graphql";
 
-  @Query(() => UserAccountReadModel, { nullable: true })
-  async userAccount(
-    @Arg('id') id: string
-  ): Promise<UserAccountReadModel | null> {
-    return this.prisma.userAccountReadModel.findUnique({
-      where: { id },
-    });
+@Resolver()
+class CartQueryResolver {
+  @Query(() => CartQueryOutput)
+  async getCart(@Ctx() { prisma }: QueryContext, @Arg("cartId") cartId: string): Promise<CartQueryOutput> {
+    const carts = await prisma.$queryRaw<CartQueryOutput[]>`
+      SELECT o.id, o.name, o.deleted, o.created_at as createdAt, o.updated_at as updatedAt
+      FROM carts AS o WHERE o.id = ${cartId}`;
+    if (!carts.length) throw new Error("Cart not found");
+    return carts[0];
   }
 
-  @Query(() => [UserAccountReadModel])
-  async userAccounts(): Promise<UserAccountReadModel[]> {
-    return this.prisma.userAccountReadModel.findMany();
+  @Query(() => [CartQueryOutput])
+  async getCarts(@Ctx() { prisma }: QueryContext): Promise<CartQueryOutput[]> {
+    return prisma.$queryRaw<CartQueryOutput[]>`
+      SELECT o.id, o.name, o.deleted, o.created_at as createdAt, o.updated_at as updatedAt
+      FROM carts AS o WHERE o.deleted = false`;
+  }
+
+  @Query(() => [CartItemQueryOutput])
+  async getCartItems(@Ctx() { prisma }: QueryContext, @Arg("cartId") cartId: string): Promise<CartItemQueryOutput[]> {
+    return prisma.$queryRaw<CartItemQueryOutput[]>`
+      SELECT oi.id, oi.cart_id as cartId, oi.name, oi.quantity, oi.price,
+             oi.created_at as createdAt, oi.updated_at as updatedAt
+      FROM carts AS o JOIN cart_items AS oi ON o.id = oi.cart_id
+      WHERE o.deleted = false AND oi.cart_id = ${cartId}`;
   }
 }
 ```
@@ -679,13 +731,14 @@ cqrs-es-spec-kit-js/
 │   ├── event-store-adapter-js/ # Event Store library
 │   └── cqrs-es-example-js/     # Production example
 │
-├── packages/                     # Your application code (to be created)
+├── modules/                      # Application code
 │   ├── command/                 # Write side
 │   ├── query/                   # Read side
 │   ├── rmu/                     # Read Model Updater
-│   └── infrastructure/          # Shared infrastructure
+│   ├── infrastructure/          # Shared infrastructure
+│   └── bootstrap/               # Application entry points
 │
-├── scripts/                      # Development and deployment scripts
+├── tools/                        # Development and deployment tools
 ├── AGENTS.md                    # AI agent instructions
 ├── CLAUDE.md                    # Claude Code configuration
 ├── GEMINI.md                    # Gemini configuration
@@ -850,15 +903,14 @@ export READ_API_SERVER_BASE_URL="http://localhost:38082"
 
 ### Local Development
 ```bash
-docker-compose up -d          # Start DynamoDB and PostgreSQL
-npm run build                 # Build all packages
-npm run dev                   # Start in development mode
+docker-compose up -d          # Start DynamoDB and MySQL
+pnpm build                    # Build all packages
 ```
 
 ### Production Considerations
 
 - **Event Store**: DynamoDB with auto-scaling
-- **Read Model**: PostgreSQL with read replicas
+- **Read Model**: MySQL with read replicas
 - **RMU**: AWS Lambda with DynamoDB Streams trigger
 - **APIs**: Containerized GraphQL servers (ECS/EKS)
 - **Monitoring**: CloudWatch for event processing latency
