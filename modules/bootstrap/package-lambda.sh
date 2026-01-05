@@ -31,13 +31,20 @@ PRISMA_INTERNAL_PATH=$(dirname "$PRISMA_CLIENT_PATH")/../.prisma/client
 cp -rL "$PRISMA_CLIENT_PATH/"* "$PACKAGE_DIR/node_modules/@prisma/client/"
 cp -rL "$PRISMA_INTERNAL_PATH/"* "$PACKAGE_DIR/node_modules/.prisma/client/"
 
-# Lambda用のPrismaバイナリを生成（Linux x64用）
-echo "Generating Prisma binaries for Linux..."
+# Lambda用のPrismaバイナリを生成（Linux用 - schema.prismaのbinaryTargetsを使用）
+echo "Generating Prisma binaries for Lambda (rhel-openssl-1.0.x, rhel-openssl-3.0.x)..."
 SCHEMA_PATH="$ROOT_DIR/modules/rmu/prisma/schema.prisma"
 if [ -f "$SCHEMA_PATH" ]; then
-  cd "$PACKAGE_DIR"
-  PRISMA_CLI_BINARY_TARGETS=rhel-openssl-3.0.x npx prisma generate --schema="$SCHEMA_PATH" || echo "Prisma generate skipped (using bundled binaries)"
+  cd "$ROOT_DIR/modules/rmu"
+  npx prisma generate --schema="$SCHEMA_PATH"
   cd "$SCRIPT_DIR"
+
+  # 生成されたPrismaクライアントをコピー
+  RMU_PRISMA_PATH="$ROOT_DIR/modules/rmu/node_modules/.prisma/client"
+  if [ -d "$RMU_PRISMA_PATH" ]; then
+    echo "Copying Prisma binaries from RMU module..."
+    cp -rL "$RMU_PRISMA_PATH/"* "$PACKAGE_DIR/node_modules/.prisma/client/"
+  fi
 else
   echo "Schema not found at $SCHEMA_PATH, skipping Prisma generate"
 fi

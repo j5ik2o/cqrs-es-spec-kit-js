@@ -162,14 +162,26 @@ services:
       - |
         apk add --no-cache aws-cli
 
-        echo "🚀 Deploying Lambda function..."
+        echo "🚀 Deploying Lambda function via S3 (for large packages)..."
 
-        # Create or update Lambda function
+        # Create S3 bucket for Lambda code
+        aws s3 mb s3://lambda-code --endpoint-url http://localstack:4566 --region ap-northeast-1 2>/dev/null || true
+
+        # Upload Lambda zip to S3 (disable checksum for LocalStack compatibility)
+        echo "Uploading Lambda package to S3..."
+        AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED \
+        aws s3 cp /app/modules/bootstrap/dist/lambda/function.zip s3://lambda-code/function.zip \
+          --endpoint-url http://localstack:4566 \
+          --region ap-northeast-1 \
+          --no-progress
+
+        # Create or update Lambda function from S3
         if aws lambda get-function --function-name read-model-updater --endpoint-url http://localstack:4566 --region ap-northeast-1 2>/dev/null; then
           echo "Updating existing Lambda function..."
           aws lambda update-function-code \
             --function-name read-model-updater \
-            --zip-file fileb:///app/modules/bootstrap/dist/lambda/function.zip \
+            --s3-bucket lambda-code \
+            --s3-key function.zip \
             --endpoint-url http://localstack:4566 \
             --region ap-northeast-1
         else
@@ -179,7 +191,7 @@ services:
             --runtime nodejs18.x \
             --handler index.handler \
             --role arn:aws:iam::000000000000:role/lambda-role \
-            --zip-file fileb:///app/modules/bootstrap/dist/lambda/function.zip \
+            --code S3Bucket=lambda-code,S3Key=function.zip \
             --timeout 60 \
             --memory-size 512 \
             --environment "Variables={DATABASE_URL=mysql://cartdb:cartdb@mysql-local:3306/cartdb}" \

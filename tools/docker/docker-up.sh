@@ -4,14 +4,8 @@ set -eu
 
 cd "$(dirname "$0")/../.." || exit 1
 
-echo "Starting infrastructure services (databases, localstack)..."
-docker-compose up -d mysql localstack dynamodb-setup dynamodb-admin phpmyadmin migration
-
-echo "Waiting for services to be ready..."
-sleep 10
-
-echo "Starting application services..."
-docker-compose up -d write-api-server lambda-setup read-api-server
+echo "Starting all services..."
+docker-compose up -d
 
 echo "All services started!"
 echo ""
