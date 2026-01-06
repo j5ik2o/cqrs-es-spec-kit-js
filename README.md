@@ -55,13 +55,13 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 | Tool | Description |
 |------|-------------|
-| **Nix** | Package manager with flakes enabled ([Install](https://nix.dev/install-nix)) |
+| **Devbox** | Portable development environment ([Install](https://www.jetify.com/devbox/docs/installing_devbox/)) |
 | **Docker** | Container runtime |
 | **Git** | Version control |
 
 Please refer to the setup guides:
-- [Nix setup](docs/NIX_SETUP.md)
-- [direnv setup](docs/DIRENV_SETUP.md)
+- [Devbox setup](docs/DEVBOX_SETUP.md)
+- [direnv setup](docs/DIRENV_SETUP.md) (optional, for auto-activation)
 
 #### Supported OS
 
@@ -76,13 +76,9 @@ Please refer to the setup guides:
 
 ### Installation
 
-1. **Install Nix** (if not already installed):
+1. **Install Devbox** (if not already installed):
    ```bash
-   # Follow instructions at https://nix.dev/install-nix
-   curl -L https://nixos.org/nix/install | sh
-
-   # Enable flakes (add to ~/.config/nix/nix.conf)
-   echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+   curl -fsSL https://get.jetify.com/devbox | bash
    ```
 
 2. **Clone and enter development environment**:
@@ -91,8 +87,8 @@ Please refer to the setup guides:
    cd cqrs-es-spec-kit-js
 
    # Enter development environment (includes Node.js, pnpm, Docker tools, AWS CLI, jq, curl)
-   nix develop
-   # or
+   devbox shell
+   # or with direnv (auto-activation)
    # direnv allow
 
    # Install dependencies

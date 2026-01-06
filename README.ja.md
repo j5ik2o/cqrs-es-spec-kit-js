@@ -55,13 +55,13 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 
 | ツール | 説明 |
 |--------|------|
-| **Nix** | flakes 有効のパッケージマネージャー（[インストール](https://nix.dev/install-nix)） |
+| **Devbox** | ポータブル開発環境（[インストール](https://www.jetify.com/devbox/docs/installing_devbox/)） |
 | **Docker** | コンテナランタイム |
 | **Git** | バージョン管理 |
 
 セットアップ手順は以下を参照してください:
-- [Nix セットアップ](docs/NIX_SETUP.ja.md)
-- [direnv セットアップ](docs/DIRENV_SETUP.ja.md)
+- [Devbox セットアップ](docs/DEVBOX_SETUP.ja.md)
+- [direnv セットアップ](docs/DIRENV_SETUP.ja.md)（オプション、自動有効化用）
 
 #### 対応OS
 
@@ -76,13 +76,9 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 
 ### インストール
 
-1. **Nix をインストール**（未インストールの場合）:
+1. **Devbox をインストール**（未インストールの場合）:
    ```bash
-   # https://nix.dev/install-nix の手順に従ってください
-   curl -L https://nixos.org/nix/install | sh
-
-   # flakes を有効化（~/.config/nix/nix.conf に追加）
-   echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+   curl -fsSL https://get.jetify.com/devbox | bash
    ```
 
 2. **クローンして開発環境に入る**:
@@ -91,8 +87,8 @@ Event Storming によるドメイン分析で得られたドメインイベン�
    cd cqrs-es-spec-kit-js
 
    # 開発環境に入る（Node.js、pnpm、Docker ツール、AWS CLI、jq、curl が含まれます）
-   nix develop
-   # もしくは
+   devbox shell
+   # もしくは direnv を使用（自動有効化）
    # direnv allow
 
    # 依存関係をインストール
