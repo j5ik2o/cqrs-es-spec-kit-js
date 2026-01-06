@@ -55,13 +55,14 @@ It provides a foundation that allows domain events, commands, aggregates, and qu
 
 | Tool | Description |
 |------|-------------|
-| **Devbox** | Portable development environment ([Install](https://www.jetify.com/devbox/docs/installing_devbox/)) |
+| **Devbox** or **Dev Container** | Development environment (choose one) |
 | **Docker** | Container runtime |
 | **Git** | Version control |
 
 Please refer to the setup guides:
-- [Devbox setup](docs/DEVBOX_SETUP.md)
-- [direnv setup](docs/DIRENV_SETUP.md) (optional, for auto-activation)
+- [Devbox setup](docs/DEVBOX_SETUP.md) - Terminal-based, Nix-powered environment
+- [Dev Container setup](docs/DEVCONTAINER_SETUP.md) - VS Code / Codespaces / JetBrains IDE integration
+- [direnv setup](docs/DIRENV_SETUP.md) (optional, for Devbox auto-activation)
 
 #### Supported OS
 

@@ -55,13 +55,14 @@ Event Storming によるドメイン分析で得られたドメインイベン�
 
 | ツール | 説明 |
 |--------|------|
-| **Devbox** | ポータブル開発環境（[インストール](https://www.jetify.com/devbox/docs/installing_devbox/)） |
+| **Devbox** または **Dev Container** | 開発環境（いずれかを選択） |
 | **Docker** | コンテナランタイム |
 | **Git** | バージョン管理 |
 
 セットアップ手順は以下を参照してください:
-- [Devbox セットアップ](docs/DEVBOX_SETUP.ja.md)
-- [direnv セットアップ](docs/DIRENV_SETUP.ja.md)（オプション、自動有効化用）
+- [Devbox セットアップ](docs/DEVBOX_SETUP.ja.md) - ターミナルベース、Nix 駆動の環境
+- [Dev Container セットアップ](docs/DEVCONTAINER_SETUP.ja.md) - VS Code / Codespaces / JetBrains IDE 統合
+- [direnv セットアップ](docs/DIRENV_SETUP.ja.md)（オプション、Devbox 自動有効化用）
 
 #### 対応OS
 

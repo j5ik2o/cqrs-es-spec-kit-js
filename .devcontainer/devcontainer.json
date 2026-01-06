@@ -1,0 +1,38 @@
+{
+  "name": "CQRS/ES Spec Kit JS",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+  "containerEnv": {
+    "AWS_REGION": "ap-northeast-1"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "biomejs.biome",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "GraphQL.vscode-graphql",
+        "GraphQL.vscode-graphql-syntax",
+        "Prisma.prisma",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "quickfix.biome": "explicit",
+          "source.organizeImports.biome": "explicit"
+        }
+      }
+    }
+  },
+  "postCreateCommand": ".devcontainer/post-create.sh",
+  "remoteUser": "node"
+}
