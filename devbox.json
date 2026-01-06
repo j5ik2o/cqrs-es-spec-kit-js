@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.6/.schema/devbox.schema.json",
+  "packages": [
+    "nodejs_22@latest",
+    "pnpm@latest",
+    "docker@latest",
+    "docker-compose@latest",
+    "awscli2@latest",
+    "jq@latest",
+    "curl@latest"
+  ],
+  "env": {
+    "AWS_REGION": "ap-northeast-1"
+  },
+  "shell": {
+    "init_hook": [
+      "echo '🚀 CQRS/ES Spec Kit JS Development Environment'",
+      "echo ''",
+      "echo 'Available tools:'",
+      "echo \"  - Node.js: $(node --version)\"",
+      "echo \"  - pnpm: $(pnpm --version)\"",
+      "echo ''",
+      "echo 'Quick start:'",
+      "echo '  pnpm install    # Install dependencies'",
+      "echo '  pnpm build      # Build all packages'",
+      "echo '  pnpm test       # Run tests'",
+      "echo ''"
+    ],
+    "scripts": {
+      "install": "pnpm install",
+      "build": "pnpm build",
+      "test": "pnpm test"
+    }
+  }
+}
