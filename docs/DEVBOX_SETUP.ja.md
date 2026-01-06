@@ -26,40 +26,7 @@ curl -fsSL https://get.jetify.com/devbox | bash
 
 ## 2. (オプション) direnv をインストールして自動有効化
 
-ディレクトリに入ったときに開発環境を自動的に有効化したい場合は、direnv をインストールします：
-
-### macOS
-
-```bash
-brew install direnv
-```
-
-### Linux (Ubuntu/Debian)
-
-```bash
-sudo apt install direnv
-```
-
-### シェル設定
-
-シェル設定ファイルに以下を追加します：
-
-**Bash** (`~/.bashrc`):
-```bash
-eval "$(direnv hook bash)"
-```
-
-**Zsh** (`~/.zshrc`):
-```bash
-eval "$(direnv hook zsh)"
-```
-
-**Fish** (`~/.config/fish/config.fish`):
-```fish
-direnv hook fish | source
-```
-
-設定後、シェルを再起動するか `source ~/.bashrc`（または該当するファイル）を実行してください。
+ディレクトリに入ったときに開発環境を自動的に有効化したい場合は、[direnv セットアップ](DIRENV_SETUP.ja.md)を参照してください。
 
 ## 3. 開発環境に入る
 

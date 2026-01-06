@@ -26,40 +26,7 @@ For more installation options, see the [official documentation](https://www.jeti
 
 ## 2. (Optional) Install direnv for Auto-Activation
 
-If you want the development environment to activate automatically when you enter the directory, install direnv:
-
-### macOS
-
-```bash
-brew install direnv
-```
-
-### Linux (Ubuntu/Debian)
-
-```bash
-sudo apt install direnv
-```
-
-### Shell Configuration
-
-Add the following to your shell configuration file:
-
-**Bash** (`~/.bashrc`):
-```bash
-eval "$(direnv hook bash)"
-```
-
-**Zsh** (`~/.zshrc`):
-```bash
-eval "$(direnv hook zsh)"
-```
-
-**Fish** (`~/.config/fish/config.fish`):
-```fish
-direnv hook fish | source
-```
-
-Then restart your shell or run `source ~/.bashrc` (or equivalent).
+If you want the development environment to activate automatically when you enter the directory, see [direnv setup](DIRENV_SETUP.md).
 
 ## 3. Enter the Dev Environment
 
