@@ -33,6 +33,20 @@
     "yarn": "please-use-pnpm"
   },
   "packageManager": "pnpm@10.22.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@apollo/protobufjs",
+      "@biomejs/biome",
+      "@prisma/client",
+      "@prisma/engines",
+      "aws-sdk",
+      "cpu-features",
+      "esbuild",
+      "prisma",
+      "protobufjs",
+      "ssh2"
+    ]
+  },
   "devDependencies": {
     "@types/jest": "catalog:",
     "jest": "catalog:",
