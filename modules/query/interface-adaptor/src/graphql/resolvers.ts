@@ -1,16 +1,32 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import { type ILogObj, Logger } from "tslog";
 import { Arg, Ctx, Query, Resolver } from "type-graphql";
 import { CartItemQueryOutput, CartQueryOutput } from "./outputs";
 
-type CartItemRow = Omit<CartItemQueryOutput, "quantity" | "price"> & {
-  quantity: number | string | bigint;
-  price: number | string | bigint;
-};
-
 interface QueryContext {
   prisma: PrismaClient;
 }
+
+const CART_SELECT = {
+  id: true,
+  name: true,
+  deleted: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.CartsSelect;
+
+const CART_ITEM_SELECT = {
+  id: true,
+  cartId: true,
+  name: true,
+  quantity: true,
+  price: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.CartItemsSelect;
+
+type CartRow = Prisma.CartsGetPayload<{ select: typeof CART_SELECT }>;
+type CartItemRow = Prisma.CartItemsGetPayload<{ select: typeof CART_ITEM_SELECT }>;
 
 @Resolver()
 class CartQueryResolver {
@@ -18,40 +34,25 @@ class CartQueryResolver {
 
   @Query(() => CartQueryOutput)
   async getCart(@Ctx() { prisma }: QueryContext, @Arg("cartId") cartId: string): Promise<CartQueryOutput> {
-    const carts: CartQueryOutput[] = await prisma.$queryRaw<CartQueryOutput[]>`
-        SELECT
-            o.id as id,
-            o.name as name,
-            o.deleted as deleted,
-            o.created_at as createdAt,
-            o.updated_at as updatedAt
-        FROM
-            carts AS o
-        WHERE
-            o.id = ${cartId}`;
-    this.logger.debug("getCart:", carts);
-    if (!carts.length) {
+    const cart = await prisma.carts.findUnique({
+      where: { id: cartId },
+      select: CART_SELECT,
+    });
+    this.logger.debug("getCart:", cart);
+    if (!cart) {
       throw new Error("Cart not found");
     }
-    this.logger.debug("cart:", carts[0]);
-    return carts[0];
+    return this.toCartOutput(cart);
   }
 
   @Query(() => [CartQueryOutput])
   async getCarts(@Ctx() { prisma }: QueryContext): Promise<CartQueryOutput[]> {
-    const carts: CartQueryOutput[] = await prisma.$queryRaw<CartQueryOutput[]>`
-        SELECT
-            o.id as id,
-            o.name as name,
-            o.deleted as deleted,
-            o.created_at as createdAt,
-            o.updated_at as updatedAt
-        FROM
-            carts AS o
-        WHERE
-            o.deleted = false`;
+    const carts = await prisma.carts.findMany({
+      where: { deleted: false },
+      select: CART_SELECT,
+    });
     this.logger.debug("getCarts:", carts);
-    return carts;
+    return carts.map((cart) => this.toCartOutput(cart));
   }
 
   @Query(() => CartItemQueryOutput)
@@ -59,24 +60,15 @@ class CartQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("cartItemId") cartItemId: string,
   ): Promise<CartItemQueryOutput> {
-    const items: CartItemRow[] = await prisma.$queryRaw<CartItemRow[]>`
-        SELECT
-            oi.id as id,
-            oi.cart_id as cartId,
-            oi.name as name,
-            oi.quantity as quantity,
-            oi.price as price,
-            oi.created_at as createdAt,
-            oi.updated_at as updatedAt
-        FROM
-            cart_items AS oi
-        WHERE
-            oi.id = ${cartItemId}`;
-    if (!items.length) {
+    const item = await prisma.cartItems.findUnique({
+      where: { id: cartItemId },
+      select: CART_ITEM_SELECT,
+    });
+    if (!item) {
       throw new Error("Cart item not found");
     }
-    this.logger.debug("cartItem:", items[0]);
-    return this.normalizeCartItem(items[0]);
+    this.logger.debug("cartItem:", item);
+    return this.toCartItemOutput(item);
   }
 
   @Query(() => [CartItemQueryOutput])
@@ -84,28 +76,36 @@ class CartQueryResolver {
     @Ctx() { prisma }: QueryContext,
     @Arg("cartId") cartId: string,
   ): Promise<CartItemQueryOutput[]> {
-    const items: CartItemRow[] = await prisma.$queryRaw<CartItemRow[]>`
-        SELECT
-            oi.id as id,
-            oi.cart_id as cartId,
-            oi.name as name,
-            oi.quantity as quantity,
-            oi.price as price,
-            oi.created_at as createdAt,
-            oi.updated_at as updatedAt
-        FROM
-            carts AS o JOIN cart_items AS oi ON o.id = oi.cart_id
-        WHERE
-            o.deleted = false AND oi.cart_id = ${cartId}`;
+    const items = await prisma.cartItems.findMany({
+      where: {
+        cartId,
+        carts: { deleted: false },
+      },
+      select: CART_ITEM_SELECT,
+    });
     this.logger.debug("cartItems:", items);
-    return items.map((item) => this.normalizeCartItem(item));
+    return items.map((item) => this.toCartItemOutput(item));
   }
 
-  private normalizeCartItem(item: CartItemRow): CartItemQueryOutput {
+  private toCartOutput(cart: CartRow): CartQueryOutput {
     return {
-      ...item,
-      quantity: Number(item.quantity),
+      id: cart.id,
+      name: cart.name,
+      deleted: cart.deleted,
+      createdAt: cart.createdAt,
+      updatedAt: cart.updatedAt,
+    };
+  }
+
+  private toCartItemOutput(item: CartItemRow): CartItemQueryOutput {
+    return {
+      id: item.id,
+      cartId: item.cartId,
+      name: item.name,
+      quantity: item.quantity,
       price: Number(item.price),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 }

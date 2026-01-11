@@ -10,6 +10,7 @@ import { RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-i
 import { type CartCommandProcessor, ProcessNotFoundError } from "cqrs-es-spec-kit-js-command-processor";
 import type { ProcessError } from "cqrs-es-spec-kit-js-command-processor";
 import { OptimisticLockError } from "event-store-adapter-js";
+import { sequenceS } from "fp-ts/Apply";
 import type { Task } from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import type { TaskEither } from "fp-ts/TaskEither";
@@ -41,19 +42,11 @@ class CartCommandResolver {
     @Arg("input", () => CreateCartInput) input: CreateCartInput,
   ): Promise<CartOutput> {
     return pipe(
-      this.validateCartName(input.name),
-      TE.chainW((validatedName) =>
-        pipe(
-          this.validateUserAccountId(input.executorId),
-          TE.map((validatedExecutorId) => ({
-            validatedName,
-            validatedExecutorId,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedName, validatedExecutorId }) =>
-        cartCommandProcessor.createCart(validatedName, validatedExecutorId),
-      ),
+      this.validateAll({
+        name: this.validateCartName(input.name),
+        executorId: this.validateUserAccountId(input.executorId),
+      }),
+      TE.chainW(({ name, executorId }) => cartCommandProcessor.createCart(name, executorId)),
       TE.map((cartEvent) => ({
         cartId: cartEvent.aggregateId.asString(),
       })),
@@ -68,32 +61,17 @@ class CartCommandResolver {
     @Arg("input", () => AddItemToCartInput) input: AddItemToCartInput,
   ): Promise<CartItemOutput> {
     return pipe(
-      this.validateCartId(input.cartId),
-      TE.chainW((validatedCartId) =>
+      this.validateAll({
+        cartId: this.validateCartId(input.cartId),
+        executorId: this.validateUserAccountId(input.executorId),
+        item: this.validateCartItem(CartItemId.generate(), input.name, input.quantity, input.price),
+      }),
+      TE.chainW(({ cartId, executorId, item }) =>
         pipe(
-          this.validateUserAccountId(input.executorId),
-          TE.map((validatedExecutorId) => ({
-            validatedCartId,
-            validatedExecutorId,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedCartId, validatedExecutorId }) =>
-        pipe(
-          this.validateCartItem(CartItemId.generate(), input.name, input.quantity, input.price),
-          TE.map((validatedItem) => ({
-            validatedCartId,
-            validatedExecutorId,
-            validatedItem,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedCartId, validatedExecutorId, validatedItem }) =>
-        pipe(
-          cartCommandProcessor.addItemToCart(validatedCartId, validatedItem, validatedExecutorId),
+          cartCommandProcessor.addItemToCart(cartId, item, executorId),
           TE.map((cartEvent) => ({
             cartId: cartEvent.aggregateId.asString(),
-            itemId: validatedItem.id.asString(),
+            itemId: item.id.asString(),
           })),
         ),
       ),
@@ -108,28 +86,13 @@ class CartCommandResolver {
     @Arg("input", () => RemoveItemFromCartInput) input: RemoveItemFromCartInput,
   ): Promise<CartOutput> {
     return pipe(
-      this.validateCartId(input.cartId),
-      TE.chainW((validatedCartId) =>
-        pipe(
-          this.validateCartItemId(input.itemId),
-          TE.map((validatedItemId) => ({
-            validatedCartId,
-            validatedItemId,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedCartId, validatedItemId }) =>
-        pipe(
-          this.validateUserAccountId(input.executorId),
-          TE.map((validatedExecutorId) => ({
-            validatedCartId,
-            validatedItemId,
-            validatedExecutorId,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedCartId, validatedItemId, validatedExecutorId }) =>
-        cartCommandProcessor.removeItemFromCart(validatedCartId, validatedItemId, validatedExecutorId),
+      this.validateAll({
+        cartId: this.validateCartId(input.cartId),
+        itemId: this.validateCartItemId(input.itemId),
+        executorId: this.validateUserAccountId(input.executorId),
+      }),
+      TE.chainW(({ cartId, itemId, executorId }) =>
+        cartCommandProcessor.removeItemFromCart(cartId, itemId, executorId),
       ),
       TE.map((cartEvent) => ({
         cartId: cartEvent.aggregateId.asString(),
@@ -145,25 +108,25 @@ class CartCommandResolver {
     @Arg("input", () => DeleteCartInput) input: DeleteCartInput,
   ): Promise<CartOutput> {
     return pipe(
-      this.validateCartId(input.cartId),
-      TE.chainW((validatedCartId) =>
-        pipe(
-          this.validateUserAccountId(input.executorId),
-          TE.map((validatedExecutorId) => ({
-            validatedCartId,
-            validatedExecutorId,
-          })),
-        ),
-      ),
-      TE.chainW(({ validatedCartId, validatedExecutorId }) =>
-        cartCommandProcessor.deleteCart(validatedCartId, validatedExecutorId),
-      ),
+      this.validateAll({
+        cartId: this.validateCartId(input.cartId),
+        executorId: this.validateUserAccountId(input.executorId),
+      }),
+      TE.chainW(({ cartId, executorId }) => cartCommandProcessor.deleteCart(cartId, executorId)),
       TE.map((cartEvent) => ({
         cartId: cartEvent.aggregateId.asString(),
       })),
       TE.mapLeft(this.convertToError),
       this.toTask(),
     )();
+  }
+
+  private validateAll<T extends Record<string, unknown>>(
+    validators: { [K in keyof T]: TaskEither<string, T[K]> },
+  ): TaskEither<string, T> {
+    return sequenceS(TE.ApplicativePar)(
+      validators as Record<string, TaskEither<string, unknown>>,
+    ) as TaskEither<string, T>;
   }
 
   private convertToError(error: string | ProcessError): Error {
