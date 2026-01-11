@@ -21,30 +21,14 @@ class CartRepositoryImpl implements CartRepository {
   storeEvent(event: CartEvent, version: number): TE.TaskEither<RepositoryError, void> {
     return TE.tryCatch(
       () => this.eventStore.persistEvent(event, version),
-      (reason) => {
-        if (reason instanceof OptimisticLockError) {
-          return new RepositoryError("Failed to store event due to optimistic lock error", reason);
-        }
-        if (reason instanceof Error) {
-          return new RepositoryError("Failed to store event due to error", reason);
-        }
-        return new RepositoryError(String(reason));
-      },
+      this.toRepositoryError('Failed to store event'),
     );
   }
 
   storeEventAndSnapshot(event: CartEvent, snapshot: Cart): TE.TaskEither<RepositoryError, void> {
     return TE.tryCatch(
       () => this.eventStore.persistEventAndSnapshot(event, snapshot),
-      (reason) => {
-        if (reason instanceof OptimisticLockError) {
-          return new RepositoryError("Failed to store event and snapshot due to optimistic lock error", reason);
-        }
-        if (reason instanceof Error) {
-          return new RepositoryError("Failed to store event and snapshot due to error", reason);
-        }
-        return new RepositoryError(String(reason));
-      },
+      this.toRepositoryError('Failed to store event and snapshot'),
     );
   }
 
@@ -58,13 +42,20 @@ class CartRepositoryImpl implements CartRepository {
         const events = await this.eventStore.getEventsByIdSinceSequenceNumber(id, snapshot.sequenceNumber + 1);
         return Cart.replay(events, snapshot);
       },
-      (reason) => {
-        if (reason instanceof Error) {
-          return new RepositoryError("Failed to find by id", reason);
-        }
-        return new RepositoryError(String(reason));
-      },
+      this.toRepositoryError('Failed to find by id'),
     );
+  }
+
+  private toRepositoryError(context: string): (reason: unknown) => RepositoryError {
+    return (reason: unknown): RepositoryError => {
+      if (reason instanceof OptimisticLockError) {
+        return new RepositoryError(`${context} due to optimistic lock error`, reason);
+      }
+      if (reason instanceof Error) {
+        return new RepositoryError(`${context} due to error`, reason);
+      }
+      return new RepositoryError(String(reason));
+    };
   }
 
   static of(

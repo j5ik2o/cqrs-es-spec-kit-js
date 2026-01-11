@@ -11,6 +11,7 @@ import {
   type UserAccountId,
 } from "cqrs-es-spec-kit-js-command-domain";
 import { type CartRepository, RepositoryError } from "cqrs-es-spec-kit-js-command-interface-adaptor-if";
+import type * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
 
@@ -32,22 +33,7 @@ class CartCommandProcessor {
   }
 
   addItemToCart(id: CartId, item: CartItem, executorId: UserAccountId): TE.TaskEither<ProcessError, CartEvent> {
-    return pipe(
-      this.cartRepository.findById(id),
-      TE.chainW(this.getOrError),
-      TE.chainW((cart) =>
-        pipe(
-          this.addItemAsync(cart, item, executorId),
-          TE.chainW(([cart, cartItemAdded]) =>
-            pipe(
-              this.cartRepository.store(cartItemAdded, cart),
-              TE.map(() => cartItemAdded),
-            ),
-          ),
-        ),
-      ),
-      TE.mapLeft(this.convertToProcessError),
-    );
+    return this.executeCartCommand(id, (cart) => cart.addItem(item, executorId));
   }
 
   removeItemFromCart(
@@ -55,45 +41,37 @@ class CartCommandProcessor {
     itemId: CartItemId,
     executorId: UserAccountId,
   ): TE.TaskEither<ProcessError, CartEvent> {
-    return pipe(
-      this.cartRepository.findById(id),
-      TE.chainW(this.getOrError),
-      TE.chainW((cart) =>
-        pipe(
-          this.removeItemAsync(cart, itemId, executorId),
-          TE.chainW(([cart, cartItemRemoved]) =>
-            pipe(
-              this.cartRepository.store(cartItemRemoved, cart),
-              TE.map(() => cartItemRemoved),
-            ),
-          ),
-        ),
-      ),
-      TE.mapLeft(this.convertToProcessError),
-    );
+    return this.executeCartCommand(id, (cart) => cart.removeItem(itemId, executorId));
   }
 
   deleteCart(id: CartId, executorId: UserAccountId): TE.TaskEither<ProcessError, CartEvent> {
-    return pipe(
-      this.cartRepository.findById(id),
-      TE.chainW(this.getOrError),
-      TE.chainW((cart) =>
-        pipe(
-          this.deleteCartAsync(cart, executorId),
-          TE.chainW(([cart, cartDeleted]) =>
-            pipe(
-              this.cartRepository.store(cartDeleted, cart),
-              TE.map(() => cartDeleted),
-            ),
-          ),
-        ),
-      ),
-      TE.mapLeft(this.convertToProcessError),
-    );
+    return this.executeCartCommand(id, (cart) => cart.delete(executorId));
   }
 
   static of(cartRepository: CartRepository): CartCommandProcessor {
     return new CartCommandProcessor(cartRepository);
+  }
+
+  private executeCartCommand<Evt extends CartEvent>(
+    id: CartId,
+    operation: (cart: Cart) => E.Either<Error, [Cart, Evt]>,
+  ): TE.TaskEither<ProcessError, Evt> {
+    return pipe(
+      this.cartRepository.findById(id),
+      TE.chainW(this.getOrError),
+      TE.chainW((cart) =>
+        pipe(
+          TE.fromEither(operation(cart)),
+          TE.chainW(([updatedCart, event]) =>
+            pipe(
+              this.cartRepository.store(event, updatedCart),
+              TE.map(() => event),
+            ),
+          ),
+        ),
+      ),
+      TE.mapLeft(this.convertToProcessError),
+    );
   }
 
   private convertToProcessError(e: unknown): ProcessError {
@@ -117,18 +95,6 @@ class CartCommandProcessor {
 
   private getOrError(cartOpt: Cart | undefined): TE.TaskEither<ProcessError, Cart> {
     return cartOpt === undefined ? TE.left(new ProcessNotFoundError("Cart not found")) : TE.right(cartOpt);
-  }
-
-  private addItemAsync(cart: Cart, item: CartItem, executorId: UserAccountId) {
-    return TE.fromEither(cart.addItem(item, executorId));
-  }
-
-  private removeItemAsync(cart: Cart, itemId: CartItemId, executorId: UserAccountId) {
-    return TE.fromEither(cart.removeItem(itemId, executorId));
-  }
-
-  private deleteCartAsync(cart: Cart, executorId: UserAccountId) {
-    return TE.fromEither(cart.delete(executorId));
   }
 }
 
